@@ -11,7 +11,7 @@ import com.example.kaiju.model.Producto
 fun ListaProductos(productos: List<Producto>, modifier: Modifier = Modifier){
     LazyColumn(modifier=modifier.fillMaxSize()) {
         items(productos){producto ->
-            TarjetaProducto(id = producto.id, nombre = producto.nombre, descripcion = producto.descripcion, stock = producto.stock)
+            TarjetaProducto(producto = producto)
         }
     }
 }

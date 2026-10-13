@@ -4,7 +4,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import com.example.kaiju.ui.screen.PantallaListaProductos
+import com.example.kaiju.ui.screen.PantallaCatalogo
 import com.example.kaiju.ui.theme.ProductoTheme
 
 class MainActivity : ComponentActivity() {
@@ -13,7 +13,7 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             ProductoTheme {
-                PantallaListaProductos()
+                PantallaCatalogo()
             }
         }
     }
