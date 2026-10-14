@@ -6,8 +6,8 @@ data class Producto(
     val descripcion: String,
     val categoria: String,
     val tipo: String,
-    val precio: Int,
+    val precio: Int, // En CLP sin decimales (Guía 10)
     val stockActual: Int,
     val stockMinimo: Int,
-    val detalle: String?
+    val detalle: String? = null
 )
