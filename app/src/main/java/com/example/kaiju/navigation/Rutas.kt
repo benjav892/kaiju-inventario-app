@@ -1,10 +1,12 @@
 package com.example.kaiju.navigation
 
 sealed class Rutas(val ruta: String) {
-    object Catalogo : Rutas("catalogo")
     object Login : Rutas("login")
-    object DetalleProducto : Rutas("detalleProducto")
-    object FormularioProducto : Rutas("formularioProducto")
+    object Catalogo : Rutas("catalogo")
+    object DetalleProducto : Rutas("detalle_producto/{codigo}") {
+        fun crearRuta(codigo: String) = "detalle_producto/$codigo"
+    }
+    object FormularioProducto : Rutas("formulario_producto")
     object Movimiento : Rutas("movimiento")
     object Alertas : Rutas("alertas")
 }
