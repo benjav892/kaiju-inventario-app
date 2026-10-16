@@ -41,7 +41,7 @@ fun AppNavHost(viewModel: InventarioViewModel = viewModel()){
                     selected = rutaActual == Rutas.FormularioProducto.ruta,
                     onClick = { navController.navigate(Rutas.FormularioProducto.ruta){launchSingleTop = true} },
                     icon = { Icon(Icons.AutoMirrored.Filled.List, contentDescription = null) },
-                    label = { Text("Inventario") }
+                    label = { Text("Formulario") }
                 )
             }
         }
