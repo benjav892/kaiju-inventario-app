@@ -24,13 +24,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.kaiju.ui.components.ListaProductos
 import com.example.kaiju.viewmodel.InventarioViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun PantallaCatalogo(viewModel: InventarioViewModel = viewModel()) {
+fun PantallaCatalogo(viewModel: InventarioViewModel) {
     // Obtiene la lista desde el ViewModel de inventario
     val productosViewModel by viewModel.productos.collectAsState()
 

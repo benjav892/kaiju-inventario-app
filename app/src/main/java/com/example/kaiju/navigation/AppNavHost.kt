@@ -3,6 +3,7 @@ package com.example.kaiju.navigation
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.List
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
@@ -35,13 +36,13 @@ fun AppNavHost(viewModel: InventarioViewModel = viewModel()){
                     selected = rutaActual == Rutas.Catalogo.ruta,
                     onClick = { navController.navigate(Rutas.Catalogo.ruta){launchSingleTop = true} },
                     icon = { Icon(Icons.AutoMirrored.Filled.List, contentDescription = null) },
-                    label = { Text("Catalogo") }
+                    label = { Text("Catálogo") }
                 )
                 NavigationBarItem(
                     selected = rutaActual == Rutas.FormularioProducto.ruta,
                     onClick = { navController.navigate(Rutas.FormularioProducto.ruta){launchSingleTop = true} },
-                    icon = { Icon(Icons.AutoMirrored.Filled.List, contentDescription = null) },
-                    label = { Text("Formulario") }
+                    icon = { Icon(Icons.Filled.Add, contentDescription = null) },
+                    label = { Text("Agregar") }
                 )
             }
         }
@@ -52,11 +53,13 @@ fun AppNavHost(viewModel: InventarioViewModel = viewModel()){
             modifier = Modifier.padding(innerPadding)
         ){
             composable(Rutas.Catalogo.ruta){
-                PantallaCatalogo()
+                PantallaCatalogo(viewModel = viewModel)
             }
             composable(Rutas.FormularioProducto.ruta){
-                PantallaFormularioProducto(viewModel = viewModel)
+                PantallaFormularioProducto(viewModel = viewModel,
+                    onProductoGuardado = {navController.popBackStack()})
             }
+
         }
     }
 
