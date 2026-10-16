@@ -34,7 +34,8 @@ fun TarjetaProducto(producto: Producto) {
     val esStockBajo = producto.stockActual <= producto.stockMinimo
 
     val colorStock by animateColorAsState(
-        targetValue = if (esStockBajo) Color.Red else MaterialTheme.colorScheme.primary,
+        targetValue = if (esStockBajo) MaterialTheme.colorScheme.error
+        else MaterialTheme.colorScheme.primary,
         animationSpec = tween(durationMillis = 500)
     )
 
@@ -42,7 +43,7 @@ fun TarjetaProducto(producto: Producto) {
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 6.dp),
-        border = if (esStockBajo) BorderStroke(1.dp, Color.Red) else null
+        border = if (esStockBajo) BorderStroke(1.dp, MaterialTheme.colorScheme.error) else null
     ) {
         Column(modifier = Modifier.padding(12.dp)) {
             Row(
@@ -64,15 +65,18 @@ fun TarjetaProducto(producto: Producto) {
                 ) {
                     AssistChip(
                         onClick = {},
-                        label = { Text("¡Stock Bajo!", color = Color.Red) },
+                        label = { Text("¡Stock Bajo!") },
                         leadingIcon = {
                             Icon(
                                 Icons.Default.Warning,
                                 contentDescription = null,
-                                tint = Color.Red
                             )
                         },
-                        colors = AssistChipDefaults.assistChipColors(containerColor = Color(0xFFFFEBEE))
+                        colors = AssistChipDefaults.assistChipColors(
+                            containerColor = MaterialTheme.colorScheme.errorContainer,
+                            labelColor = MaterialTheme.colorScheme.onErrorContainer,
+                            leadingIconContentColor = MaterialTheme.colorScheme.onErrorContainer
+                        )
                     )
                 }
             }
