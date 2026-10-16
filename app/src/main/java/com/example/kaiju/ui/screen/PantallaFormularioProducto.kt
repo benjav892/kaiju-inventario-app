@@ -9,26 +9,31 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.kaiju.viewmodel.InventarioViewModel
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PantallaFormularioProducto(
-    viewModel: InventarioViewModel = viewModel(),
+    viewModel: InventarioViewModel,
     onProductoGuardado: () -> Unit = {}
 ) {
     val estado by viewModel.estadoFormulario.collectAsState()
 
     Scaffold(
+        topBar = {
+            TopAppBar(title = { Text("Agregar Producto") })
+        }
     ) { padding ->
         Column(
             modifier = Modifier
@@ -42,16 +47,17 @@ fun PantallaFormularioProducto(
             OutlinedTextField(
                 value = estado.codigo,
                 onValueChange = viewModel::actualizarCodigo,
-                label = { Text("codigo") },
+                label = { Text("Código") },
                 isError = estado.errores.errorCodigo != null,
                 supportingText = { estado.errores.errorCodigo?.let { Text(it) } },
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth()
             )
+            //2. Nombre
             OutlinedTextField(
                 value = estado.nombre,
                 onValueChange = viewModel::actualizarNombre,
-                label = { Text("nombre") },
+                label = { Text("Nombre") },
                 isError = estado.errores.errorNombre != null,
                 supportingText = { estado.errores.errorNombre?.let { Text(it) } },
                 singleLine = true,
