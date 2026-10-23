@@ -1,32 +1,49 @@
 package com.example.kaiju.viewmodel
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.example.kaiju.model.ErroresProducto
 import com.example.kaiju.model.FormularioProductoEstado
+import com.example.kaiju.model.Movimiento
 import com.example.kaiju.model.Producto
+import com.example.kaiju.repository.InventarioRepository
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
-import kotlin.collections.listOf
+import kotlinx.coroutines.launch
 
+class InventarioViewModel(
+    private val repository: InventarioRepository
+) : ViewModel() {
 
-class InventarioViewModel : ViewModel() {
+    init {
+        // Precarga de datos iniciales si la BD de Room está vacía
+        viewModelScope.launch {
+            repository.precargarDatosSiEstaVacia()
+        }
+    }
 
-    // estado del formulario
+    // Estado del formulario de creación/edición de producto
     private val _estadoFormulario = MutableStateFlow(FormularioProductoEstado())
     val estadoFormulario: StateFlow<FormularioProductoEstado> = _estadoFormulario.asStateFlow()
 
-    // lista de productos
-    private val _productos = MutableStateFlow<List<Producto>>(listOf(
-            Producto(
-                codigo = "k1", nombre = "producto1", descripcion = "primer producto", categoria = "categoría1", tipo = "tipo1", precio = 15990, stockActual = 1, stockMinimo = 5, detalle = ""),
-    Producto(codigo = "k2", nombre = "producto2", descripcion = "segundo producto", categoria = "categoría1", tipo = "tipo2", precio = 8990, stockActual = 5, stockMinimo = 2, detalle = ""),
-    Producto(codigo = "k3", nombre = "producto3", descripcion = "tercer producto", categoria = "categoría2", tipo = "tipo1", precio = 24990, stockActual = 3, stockMinimo = 3, detalle = ""
+    // Flujos reactivos alimentados desde Room
+    val productos: StateFlow<List<Producto>> = repository.productos.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = emptyList()
     )
-    ))
-    val productos: StateFlow<List<Producto>> = _productos.asStateFlow()
 
+    val movimientos: StateFlow<List<Movimiento>> = repository.movimientos.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = emptyList()
+    )
+
+    // Funciones de actualización de campos del formulario
     fun actualizarCodigo(valor: String) = _estadoFormulario.update { it.copy(codigo = valor) }
     fun actualizarNombre(valor: String) = _estadoFormulario.update { it.copy(nombre = valor) }
     fun actualizarDescripcion(valor: String) = _estadoFormulario.update { it.copy(descripcion = valor) }
@@ -37,6 +54,7 @@ class InventarioViewModel : ViewModel() {
     fun actualizarStockMinimo(valor: String) = _estadoFormulario.update { it.copy(stockMinimo = valor) }
     fun actualizarDetalle(valor: String) = _estadoFormulario.update { it.copy(detalle = valor) }
 
+    // Validación de negocio para el formulario
     fun validarFormulario(): Boolean {
         val estado = _estadoFormulario.value
         val codigo = estado.codigo.trim()
@@ -45,7 +63,7 @@ class InventarioViewModel : ViewModel() {
 
         val errorCodigo = when {
             codigo.isBlank() -> "El código es obligatorio"
-            _productos.value.any { it.codigo == codigo } -> "Ese código ya existe"
+            productos.value.any { it.codigo == codigo } -> "Ese código ya existe"
             else -> null
         }
         val errorNombre =
@@ -78,6 +96,7 @@ class InventarioViewModel : ViewModel() {
                 errorPrecio == null && errorStockMinimo == null
     }
 
+    // Persistencia en base de datos local (Room)
     fun guardarProducto(): Boolean {
         if (!validarFormulario()) return false
 
@@ -94,8 +113,18 @@ class InventarioViewModel : ViewModel() {
             detalle = estado.detalle.ifBlank { "" }
         )
 
-        _productos.update { it + producto }
+        viewModelScope.launch {
+            repository.insertarProducto(producto)
+        }
+
         _estadoFormulario.value = FormularioProductoEstado()
         return true
+    }
+
+    fun registrarMovimiento(movimiento: Movimiento, onResultado: (Result<Unit>) -> Unit) {
+        viewModelScope.launch {
+            val resultado = repository.registrarMovimiento(movimiento)
+            onResultado(resultado)
+        }
     }
 }

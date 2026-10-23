@@ -18,7 +18,7 @@ interface ProductoDao {
     fun obtenerPorCodigo(codigo: String): Producto?
 
     @Query("SELECT COUNT(*) FROM productos")
-    fun contarProductos(): Int
+    suspend fun contarProductos(): Int
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertar(producto: Producto)
