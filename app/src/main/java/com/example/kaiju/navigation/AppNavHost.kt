@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
@@ -17,9 +18,11 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.example.kaiju.ui.screen.PantallaAlertas
 import com.example.kaiju.ui.screen.PantallaCatalogo
 import com.example.kaiju.ui.screen.PantallaFormularioProducto
 import com.example.kaiju.viewmodel.InventarioViewModel
+import androidx.compose.runtime.collectAsState
 
 
 @Composable
@@ -28,6 +31,8 @@ fun AppNavHost(viewModel: InventarioViewModel = viewModel()){
 
     val backStackEntry by navController.currentBackStackEntryAsState()
     val rutaActual = backStackEntry?.destination?.route
+
+    val listaProductos by viewModel.productos.collectAsState()
 
     Scaffold(
         bottomBar = {
@@ -44,6 +49,12 @@ fun AppNavHost(viewModel: InventarioViewModel = viewModel()){
                     icon = { Icon(Icons.Filled.Add, contentDescription = null) },
                     label = { Text("Agregar") }
                 )
+                NavigationBarItem(
+                    selected = rutaActual == Rutas.Alertas.ruta,
+                    onClick = { navController.navigate(Rutas.Alertas.ruta) { launchSingleTop = true } },
+                    icon = { Icon(Icons.Filled.Warning, contentDescription = null) },
+                    label = { Text("Alertas") }
+                )
             }
         }
     ) { innerPadding ->
@@ -59,7 +70,13 @@ fun AppNavHost(viewModel: InventarioViewModel = viewModel()){
                 PantallaFormularioProducto(viewModel = viewModel,
                     onProductoGuardado = {navController.popBackStack()})
             }
-
+            composable(Rutas.Alertas.ruta) {
+                val productosEnAlerta = listaProductos.filter { it.stockActual <= it.stockMinimo }
+                PantallaAlertas(
+                    productosEnAlerta = productosEnAlerta,
+                    onProductoClick = { _ -> }
+                )
+            }
         }
     }
 
