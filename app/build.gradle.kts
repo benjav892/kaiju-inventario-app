@@ -54,9 +54,9 @@ dependencies {
     androidTestImplementation(libs.androidx.junit)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
     debugImplementation(libs.androidx.compose.ui.tooling)
-    val roomVersion = "2.6.1" // Usa la última versión estable
+    val roomVersion = "2.8.4"
 
     implementation("androidx.room:room-runtime:$roomVersion")
-    implementation("androidx.room:room-ktx:$roomVersion") // Soporte para Coroutines
-    "ksp"("androidx.room:room-compiler:2.6.1")       // Procesador KSP
+    implementation("androidx.room:room-ktx:$roomVersion")
+    ksp("androidx.room:room-compiler:$roomVersion")       // Procesador KSP
 }

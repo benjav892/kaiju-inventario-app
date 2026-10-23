@@ -29,7 +29,8 @@ import com.example.kaiju.viewmodel.InventarioViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun PantallaCatalogo(viewModel: InventarioViewModel) {
+fun PantallaCatalogo(viewModel: InventarioViewModel,
+                     onProductoClick: (String) -> Unit) {
     // Obtiene la lista desde el ViewModel de inventario
     val productosViewModel by viewModel.productos.collectAsState()
 
@@ -85,7 +86,8 @@ fun PantallaCatalogo(viewModel: InventarioViewModel) {
             }
 
             //Lista de productos filtrados
-            ListaProductos(productos = productosFiltrados)
+            ListaProductos(productos = productosFiltrados,
+                onProductoClick = onProductoClick)
         }
     }
 }
