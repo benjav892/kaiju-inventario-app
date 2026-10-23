@@ -39,6 +39,10 @@ import com.example.kaiju.model.Producto
 import com.example.kaiju.model.TipoMovimiento
 import com.example.kaiju.repository.DatosDePrueba
 
+import com.example.kaiju.ui.components.BotonCompartirReporteNativo
+import com.example.kaiju.ui.components.BotonConPermisoCamara
+import com.example.kaiju.ui.components.SelectorImagenProductoNativo
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PantallaDetalleProducto(
@@ -261,6 +265,25 @@ fun PantallaDetalleProducto(
                             modifier = Modifier.padding(end = 8.dp)
                         )
                         Text("Registrar Movimiento de Stock")
+                    }
+                }
+                // recursos nativos integrados en el Detalle
+                item {
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        BotonConPermisoCamara(
+                            textoBoton = "Verificar Etiqueta con Cámara (Permiso)",
+                            onPermisoConcedido = { _ -> },
+                            onSinPermiso = { }
+                        )
+                        SelectorImagenProductoNativo()
+                        BotonCompartirReporteNativo(
+                            tituloReporte = "Ficha de Stock Kaiju - ${producto.codigo}",
+                            contenidoReporte = "Producto: ${producto.nombre} (${producto.codigo})\n" +
+                                    "Categoría: ${producto.categoria}\n" +
+                                    "Stock disponible: ${producto.stockActual} uds. (Mínimo: ${producto.stockMinimo})\n" +
+                                    "Precio: $${producto.precio} CLP",
+                            textoBoton = "Compartir Ficha de Stock"
+                        )
                     }
                 }
 

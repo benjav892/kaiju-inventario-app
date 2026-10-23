@@ -42,6 +42,9 @@ import com.example.kaiju.model.Producto
 import com.example.kaiju.model.TipoMovimiento
 import com.example.kaiju.repository.DatosDePrueba
 
+import com.example.kaiju.ui.components.BotonCompartirReporteNativo
+import com.example.kaiju.ui.components.BotonConPermisoCamara
+
 //Clases de datos auxiliares para representar cada fila del reporte de ventas
 data class ItemRankingProducto(
 val producto: Producto,
@@ -194,6 +197,24 @@ Scaffold(
                         style = MaterialTheme.typography.bodyMedium
                     )
                 }
+            }
+        }
+        // recursos nativos en el Ranking: escaner rapido y compartir reporte consolidado
+        item {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                BotonConPermisoCamara(
+                    textoBoton = "Escanear Etiqueta para ir al Detalle",
+                    onPermisoConcedido = { codigoLeido -> onProductoClick(codigoLeido) },
+                    onSinPermiso = { }
+                )
+                BotonCompartirReporteNativo(
+                    tituloReporte = "Reporte Consolidado de Ventas Kaiju",
+                    contenidoReporte = "Resumen Kaiju:\n" +
+                            "- Unidades totales vendidas: $totalUnidadesVendidas uds.\n" +
+                            "- Ingresos totales: $$totalIngresosEstimados CLP\n" +
+                            "- Categoría líder: ${resumenPorCategoria.firstOrNull()?.categoria ?: "N/A"}",
+                    textoBoton = "Exportar / Compartir Reporte de Ventas"
+                )
             }
         }
 
