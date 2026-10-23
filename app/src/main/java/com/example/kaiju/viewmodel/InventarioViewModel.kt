@@ -20,9 +20,9 @@ class InventarioViewModel : ViewModel() {
     // lista de productos
     private val _productos = MutableStateFlow<List<Producto>>(listOf(
             Producto(
-                codigo = "k1", nombre = "producto1", descripcion = "primer producto", categoria = "categoría1", tipo = "tipo1", precio = 15990, stockActual = 1, stockMinimo = 5, detalle = null),
-    Producto(codigo = "k2", nombre = "producto2", descripcion = "segundo producto", categoria = "categoría1", tipo = "tipo2", precio = 8990, stockActual = 5, stockMinimo = 2, detalle = null),
-    Producto(codigo = "k3", nombre = "producto3", descripcion = "tercer producto", categoria = "categoría2", tipo = "tipo1", precio = 24990, stockActual = 3, stockMinimo = 3, detalle = null
+                codigo = "k1", nombre = "producto1", descripcion = "primer producto", categoria = "categoría1", tipo = "tipo1", precio = 15990, stockActual = 1, stockMinimo = 5, detalle = ""),
+    Producto(codigo = "k2", nombre = "producto2", descripcion = "segundo producto", categoria = "categoría1", tipo = "tipo2", precio = 8990, stockActual = 5, stockMinimo = 2, detalle = ""),
+    Producto(codigo = "k3", nombre = "producto3", descripcion = "tercer producto", categoria = "categoría2", tipo = "tipo1", precio = 24990, stockActual = 3, stockMinimo = 3, detalle = ""
     )
     ))
     val productos: StateFlow<List<Producto>> = _productos.asStateFlow()
@@ -91,7 +91,7 @@ class InventarioViewModel : ViewModel() {
             precio = estado.precio.toInt(),
             stockActual = estado.stockActual.toIntOrNull() ?: 0,
             stockMinimo = estado.stockMinimo.toInt(),
-            detalle = estado.detalle.ifBlank { null }
+            detalle = estado.detalle.ifBlank { "" }
         )
 
         _productos.update { it + producto }

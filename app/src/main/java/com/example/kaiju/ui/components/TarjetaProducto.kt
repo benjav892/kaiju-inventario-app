@@ -23,14 +23,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.kaiju.model.Producto
 
 @Composable
-fun TarjetaProducto(producto: Producto) {
+fun TarjetaProducto(producto: Producto, onClick: () -> Unit = {}) {
     val esStockBajo = producto.stockActual <= producto.stockMinimo
 
     val colorStock by animateColorAsState(
@@ -38,8 +37,8 @@ fun TarjetaProducto(producto: Producto) {
         else MaterialTheme.colorScheme.primary,
         animationSpec = tween(durationMillis = 500)
     )
-
     Card(
+        onClick = onClick,
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 6.dp),
@@ -106,7 +105,7 @@ fun PreviewTarjetaProducto() {
             precio = 15990,
             stockActual = 2,
             stockMinimo = 5,
-            detalle = null
+            detalle = ""
         )
     )
 }

@@ -10,14 +10,18 @@ import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.example.kaiju.ui.screen.PantallaCatalogo
+import com.example.kaiju.ui.screen.PantallaDetalleProducto
 import com.example.kaiju.ui.screen.PantallaFormularioProducto
 import com.example.kaiju.viewmodel.InventarioViewModel
 
@@ -52,12 +56,30 @@ fun AppNavHost(viewModel: InventarioViewModel = viewModel()){
             startDestination = Rutas.Catalogo.ruta,
             modifier = Modifier.padding(innerPadding)
         ){
-            composable(Rutas.Catalogo.ruta){
-                PantallaCatalogo(viewModel = viewModel)
+            composable(Rutas.Catalogo.ruta) {
+                PantallaCatalogo(
+                    viewModel = viewModel,
+                    onProductoClick = { codigo ->
+                        navController.navigate(Rutas.DetalleProducto.crearRuta(codigo))
+                    }
+                )
             }
             composable(Rutas.FormularioProducto.ruta){
                 PantallaFormularioProducto(viewModel = viewModel,
                     onProductoGuardado = {navController.popBackStack()})
+            }
+            composable(
+                route = Rutas.DetalleProducto.ruta,
+                arguments = listOf(navArgument("codigo") { type = NavType.StringType })
+            ) { entry ->
+                val codigo = entry.arguments?.getString("codigo") ?: ""
+                val productos by viewModel.productos.collectAsState()
+
+                PantallaDetalleProducto(
+                    producto = productos.find { it.codigo == codigo },
+                    movimientos = emptyList(),   // cambiar por viewModel.movimientos cuando exista
+                    onVolver = { navController.popBackStack() }
+                )
             }
 
         }

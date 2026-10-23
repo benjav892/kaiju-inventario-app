@@ -8,10 +8,17 @@ import androidx.compose.ui.Modifier
 import com.example.kaiju.model.Producto
 
 @Composable
-fun ListaProductos(productos: List<Producto>, modifier: Modifier = Modifier){
-    LazyColumn(modifier=modifier.fillMaxSize()) {
-        items(productos){producto ->
-            TarjetaProducto(producto = producto)
+fun ListaProductos(
+    productos: List<Producto>,
+    onProductoClick: (String) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    LazyColumn(modifier = modifier.fillMaxSize()) {
+        items(productos) { producto ->
+            TarjetaProducto(
+                producto = producto,
+                onClick = { onProductoClick(producto.codigo) }
+            )
         }
     }
 }
