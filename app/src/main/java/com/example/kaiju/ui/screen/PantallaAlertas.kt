@@ -35,12 +35,13 @@ import com.example.kaiju.ui.components.IndicadorStock
 fun PantallaAlertas(
     productosEnAlerta: List<Producto>,
     onProductoClick: (String) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onVolver: () -> Unit
 ) {
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Alertas de Reposición (RF-09 / RN-06)") }
+                title = { Text("Alertas de Reposición") }
             )
         }
     ) { innerPadding ->

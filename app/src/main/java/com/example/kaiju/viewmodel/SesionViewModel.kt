@@ -70,6 +70,11 @@ class SesionViewModel : ViewModel() {
         return rol == Rol.ADMINISTRADOR || rol == Rol.ENCARGADO_INVENTARIO
     }
 
+    // El historial de movimientos solo está permitido para el ADMINISTRADOR
+    fun puedeVerHistorialMovimientos(): Boolean {
+        return _usuarioActivo.value?.rol == Rol.ADMINISTRADOR
+    }
+
     // devuelve que tipos de movimientos puede registrar el usuario activo
     fun obtenerTiposMovimientoPermitidos(): List<TipoMovimiento> {
         return when (_usuarioActivo.value?.rol) {

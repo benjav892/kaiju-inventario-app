@@ -15,8 +15,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -26,7 +24,6 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import com.example.kaiju.model.FormularioMovimientoEstado
 import com.example.kaiju.ui.screen.PantallaAlertas
 import com.example.kaiju.ui.screen.PantallaCatalogo
 import com.example.kaiju.ui.screen.PantallaDetalleProducto
@@ -34,10 +31,11 @@ import com.example.kaiju.ui.screen.PantallaFormularioProducto
 import com.example.kaiju.ui.screen.PantallaLogin
 import com.example.kaiju.ui.screen.PantallaMovimiento
 import com.example.kaiju.ui.screen.PantallaRanking
+import com.example.kaiju.ui.screen.PantallaHistorialMovimientos
 import com.example.kaiju.viewmodel.InventarioViewModel
 import com.example.kaiju.viewmodel.InventarioViewModelFactory
 import com.example.kaiju.viewmodel.SesionViewModel
-import androidx.compose.runtime.setValue
+
 
 @Composable
 fun AppNavHost(
@@ -72,12 +70,15 @@ fun AppNavHost(
                         label = { Text("Catálogo") }
                     )
 
-                    // 2. Movimiento
+                    // 2. Historial o Registrar Movimiento (según perfil)
+                    val puedeVerHistorial = sesionViewModel.puedeVerHistorialMovimientos()
+                    val rutaMovimientos = if (puedeVerHistorial) Rutas.HistorialMovimientos.ruta else Rutas.Movimiento.ruta
+                    val etiquetaMovimientos = if (puedeVerHistorial) "Historial" else "Movimiento"
                     NavigationBarItem(
-                        selected = rutaActual == Rutas.Movimiento.ruta,
-                        onClick = { navController.navigate(Rutas.Movimiento.ruta) { launchSingleTop = true } },
+                        selected = rutaActual == Rutas.HistorialMovimientos.ruta || rutaActual == Rutas.Movimiento.ruta,
+                        onClick = { navController.navigate(rutaMovimientos) { launchSingleTop = true } },
                         icon = { Icon(Icons.Filled.Refresh, contentDescription = null) },
-                        label = { Text("Movimiento") }
+                        label = { Text(etiquetaMovimientos) }
                     )
 
                     // 3. Alertas
@@ -176,7 +177,8 @@ fun AppNavHost(
                     productosEnAlerta = productosEnAlerta,
                     onProductoClick = { codigo ->
                         navController.navigate(Rutas.DetalleProducto.crearRuta(codigo))
-                    }
+                    },
+                    onVolver = { navController.popBackStack()}
                 )
             }
 
@@ -199,6 +201,14 @@ fun AppNavHost(
                     onProductoClick = { codigo ->
                         navController.navigate(Rutas.DetalleProducto.crearRuta(codigo))
                     }
+                )
+            }
+            // 8. Historial de Movimientos
+            composable(Rutas.HistorialMovimientos.ruta) {
+                PantallaHistorialMovimientos(
+                    viewModel = inventarioViewModel,
+                    onNavegarARegistrar = { navController.navigate(Rutas.Movimiento.ruta) },
+                    onVolver = { navController.popBackStack() }
                 )
             }
         }

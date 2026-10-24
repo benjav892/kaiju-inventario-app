@@ -200,7 +200,7 @@ fun PantallaMovimiento(
                 isError = estado.errores.errorCantidad != null,
                 supportingText = {
                     estado.errores.errorCantidad?.let { Text(it) }
-                        ?: Text("Número entero mayor que cero (RN-01).")
+                        ?: Text("Número entero mayor que cero.")
                 },
                 leadingIcon = { Icon(Icons.Default.Info, contentDescription = null) },
                 trailingIcon = {
@@ -224,7 +224,7 @@ fun PantallaMovimiento(
                 isError = estado.errores.errorMotivo != null,
                 supportingText = {
                     estado.errores.errorMotivo?.let { Text(it) }
-                        ?: Text("Obligatorio si el tipo es Ajuste (RN-04).")
+                        ?: Text("Obligatorio si el tipo es Ajuste.")
                 },
                 leadingIcon = { Icon(Icons.Default.Edit, contentDescription = null) },
                 trailingIcon = {
