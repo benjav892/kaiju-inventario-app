@@ -15,6 +15,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -35,6 +37,7 @@ import com.example.kaiju.ui.screen.PantallaRanking
 import com.example.kaiju.viewmodel.InventarioViewModel
 import com.example.kaiju.viewmodel.InventarioViewModelFactory
 import com.example.kaiju.viewmodel.SesionViewModel
+import androidx.compose.runtime.setValue
 
 @Composable
 fun AppNavHost(
@@ -177,17 +180,12 @@ fun AppNavHost(
                 )
             }
 
-            // 6. Movimientos
+            // 6. Registrar Movimientos
             composable(Rutas.Movimiento.ruta) {
                 PantallaMovimiento(
-                    estado = FormularioMovimientoEstado(),
-                    productos = productos,
+                    viewModel = inventarioViewModel,
                     tiposPermitidos = sesionViewModel.obtenerTiposMovimientoPermitidos(),
-                    onCodigoProductoChange = { },
-                    onTipoChange = { },
-                    onCantidadChange = { },
-                    onMotivoChange = { },
-                    onSubmit = { navController.popBackStack() },
+                    usuarioNombre = usuarioActivo?.nombre ?: "Sistema",
                     onVolver = { navController.popBackStack() }
                 )
             }

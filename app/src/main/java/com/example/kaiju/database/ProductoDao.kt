@@ -15,7 +15,7 @@ interface ProductoDao {
     fun obtenerTodos(): Flow<List<Producto>>
 
     @Query("SELECT * FROM productos WHERE codigo = :codigo LIMIT 1")
-    fun obtenerPorCodigo(codigo: String): Producto?
+    suspend fun obtenerPorCodigo(codigo: String): Producto?
 
     @Query("SELECT COUNT(*) FROM productos")
     suspend fun contarProductos(): Int

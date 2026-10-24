@@ -2,21 +2,22 @@ package com.example.kaiju.ui.screen
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Info
-import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.ShoppingCart
+import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.Button
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -30,34 +31,37 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
-import com.example.kaiju.model.FormularioMovimientoEstado
-import com.example.kaiju.model.Producto
 import com.example.kaiju.model.TipoMovimiento
+import com.example.kaiju.viewmodel.InventarioViewModel
 
+/**
+ * Pantalla "Registrar Movimiento": Formulario 100% declarativo.
+ *
+ * Lee el estado desde [viewModel.estadoFormularioMovimiento] y los productos desde [viewModel.productos].
+ * Delega toda la lógica de validaciones y almacenamiento al [InventarioViewModel].
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PantallaMovimiento(
-    estado: FormularioMovimientoEstado,
-    productos: List<Producto>,
+    viewModel: InventarioViewModel,
     tiposPermitidos: List<TipoMovimiento>,
-    onCodigoProductoChange: (String) -> Unit,
-    onTipoChange: (TipoMovimiento) -> Unit,
-    onCantidadChange: (String) -> Unit,
-    onMotivoChange: (String) -> Unit,
-    onSubmit: () -> Unit,
-    onVolver: () -> Unit,
-    modifier: Modifier = Modifier
+    usuarioNombre: String,
+    onVolver: () -> Unit
 ) {
-    var desplegarProducto by remember { mutableStateOf(false) }
-    var desplegarTipo by remember { mutableStateOf(false) }
+    val estado by viewModel.estadoFormularioMovimiento.collectAsState()
+    val productos by viewModel.productos.collectAsState()
+
+    var dropdownProductoExpandido by remember { mutableStateOf(false) }
+    var dropdownTipoExpandido by remember { mutableStateOf(false) }
 
     val productoSeleccionado = productos.find { it.codigo == estado.codigoProducto }
 
@@ -74,134 +78,177 @@ fun PantallaMovimiento(
         }
     ) { innerPadding ->
         Column(
-            modifier = modifier
+            modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
                 .padding(16.dp)
                 .verticalScroll(rememberScrollState()),
-            verticalArrangement = Arrangement.spacedBy(14.dp)
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             Text(
                 text = "Registro de Entrada, Salida o Ajuste",
                 style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.primary
             )
 
-            // Selector de Producto
+            // 1. SELECTOR DE PRODUCTO
             ExposedDropdownMenuBox(
-                expanded = desplegarProducto,
-                onExpandedChange = { desplegarProducto = !desplegarProducto }
+                expanded = dropdownProductoExpandido,
+                onExpandedChange = { dropdownProductoExpandido = !dropdownProductoExpandido }
             ) {
                 OutlinedTextField(
-                    value = productoSeleccionado?.let { "${it.nombre} (${it.codigo})" } ?: "",
+                    value = productoSeleccionado?.let { "${it.nombre} — Stock: ${it.stockActual}" } ?: "",
                     onValueChange = {},
                     readOnly = true,
                     label = { Text("Producto afectado") },
-                    leadingIcon = { Icon(Icons.Default.ShoppingCart, contentDescription = null) },
-                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = desplegarProducto) },
+                    placeholder = { Text("Selecciona un producto") },
                     isError = estado.errores.errorProducto != null,
-                    supportingText = { estado.errores.errorProducto?.let { Text(it) } },
+                    supportingText = {
+                        estado.errores.errorProducto?.let { Text(it) } ?: Text("Obligatorio elegir uno.")
+                    },
+                    leadingIcon = { Icon(Icons.Default.ShoppingCart, contentDescription = null) },
+                    trailingIcon = {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            if (estado.errores.errorProducto != null) {
+                                Icon(
+                                    Icons.Default.Warning,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.error
+                                )
+                            }
+                            ExposedDropdownMenuDefaults.TrailingIcon(expanded = dropdownProductoExpandido)
+                        }
+                    },
                     modifier = Modifier
                         .menuAnchor()
                         .fillMaxWidth()
                 )
                 ExposedDropdownMenu(
-                    expanded = desplegarProducto,
-                    onDismissRequest = { desplegarProducto = false }
+                    expanded = dropdownProductoExpandido,
+                    onDismissRequest = { dropdownProductoExpandido = false }
                 ) {
-                    productos.forEach { prod ->
+                    productos.forEach { producto ->
                         DropdownMenuItem(
-                            text = { Text("${prod.nombre} — Disponibles: ${prod.stockActual}") },
+                            text = { Text("${producto.nombre} — Disponibles: ${producto.stockActual}") },
                             onClick = {
-                                onCodigoProductoChange(prod.codigo)
-                                desplegarProducto = false
+                                viewModel.actualizarCodigoProductoMovimiento(producto.codigo)
+                                dropdownProductoExpandido = false
                             }
                         )
                     }
                 }
             }
 
-            // Selector de Tipo de Movimiento
+            // 2. SELECTOR DE TIPO DE MOVIMIENTO
             ExposedDropdownMenuBox(
-                expanded = desplegarTipo,
-                onExpandedChange = { desplegarTipo = !desplegarTipo }
+                expanded = dropdownTipoExpandido,
+                onExpandedChange = { dropdownTipoExpandido = !dropdownTipoExpandido }
             ) {
                 OutlinedTextField(
-                    value = when (estado.tipo) {
-                        TipoMovimiento.ENTRADA -> "Entrada de Mercadería"
-                        TipoMovimiento.SALIDA_VENTA -> "Salida por Venta"
-                        TipoMovimiento.SALIDA_CONSUMO -> "Salida por Consumo Interno"
-                        TipoMovimiento.AJUSTE -> "Ajuste de Inventario"
-                    },
+                    value = estado.tipo.name.replace("_", " "),
                     onValueChange = {},
                     readOnly = true,
-                    label = { Text("Tipo de Movimiento") },
-                    leadingIcon = { Icon(Icons.Default.Refresh, contentDescription = null) },
-                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = desplegarTipo) },
+                    label = { Text("Tipo de movimiento") },
                     isError = estado.errores.errorTipo != null,
-                    supportingText = { estado.errores.errorTipo?.let { Text(it) } },
+                    supportingText = {
+                        estado.errores.errorTipo?.let { Text(it) } ?: Text("Obligatorio elegir uno.")
+                    },
+                    leadingIcon = { Icon(Icons.Default.List, contentDescription = null) },
+                    trailingIcon = {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            if (estado.errores.errorTipo != null) {
+                                Icon(
+                                    Icons.Default.Warning,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.error
+                                )
+                            }
+                            ExposedDropdownMenuDefaults.TrailingIcon(expanded = dropdownTipoExpandido)
+                        }
+                    },
                     modifier = Modifier
                         .menuAnchor()
                         .fillMaxWidth()
                 )
                 ExposedDropdownMenu(
-                    expanded = desplegarTipo,
-                    onDismissRequest = { desplegarTipo = false }
+                    expanded = dropdownTipoExpandido,
+                    onDismissRequest = { dropdownTipoExpandido = false }
                 ) {
                     tiposPermitidos.forEach { tipo ->
                         DropdownMenuItem(
-                            text = {
-                                Text(
-                                    when (tipo) {
-                                        TipoMovimiento.ENTRADA -> "Entrada (Recepción)"
-                                        TipoMovimiento.SALIDA_VENTA -> "Salida (Venta)"
-                                        TipoMovimiento.SALIDA_CONSUMO -> "Salida (Consumo interno)"
-                                        TipoMovimiento.AJUSTE -> "Ajuste de Inventario"
-                                    }
-                                )
-                            },
+                            text = { Text(tipo.name.replace("_", " ")) },
                             onClick = {
-                                onTipoChange(tipo)
-                                desplegarTipo = false
+                                viewModel.actualizarTipoMovimiento(tipo)
+                                dropdownTipoExpandido = false
                             }
                         )
                     }
                 }
             }
 
-            // Campo Cantidad
+            // 3. CAMPO CANTIDAD
             OutlinedTextField(
                 value = estado.cantidad,
-                onValueChange = onCantidadChange,
+                onValueChange = { nuevoTexto ->
+                    if (nuevoTexto.all { it.isDigit() }) {
+                        viewModel.actualizarCantidadMovimiento(nuevoTexto)
+                    }
+                },
                 label = { Text("Cantidad") },
-                leadingIcon = { Icon(Icons.Default.Edit, contentDescription = null) },
-                isError = estado.errores.errorCantidad != null,
-                supportingText = { estado.errores.errorCantidad?.let { Text(it) } },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                 singleLine = true,
+                isError = estado.errores.errorCantidad != null,
+                supportingText = {
+                    estado.errores.errorCantidad?.let { Text(it) }
+                        ?: Text("Número entero mayor que cero (RN-01).")
+                },
+                leadingIcon = { Icon(Icons.Default.Info, contentDescription = null) },
+                trailingIcon = {
+                    if (estado.errores.errorCantidad != null) {
+                        Icon(
+                            Icons.Default.Warning,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.error
+                        )
+                    }
+                },
                 modifier = Modifier.fillMaxWidth()
             )
 
-            // Campo Motivo
+            // 4. CAMPO MOTIVO
             OutlinedTextField(
                 value = estado.motivo,
-                onValueChange = onMotivoChange,
-                label = { Text(if (estado.tipo == TipoMovimiento.AJUSTE) "Motivo del Ajuste (Obligatorio)" else "Motivo / Comentario (Opcional)") },
-                leadingIcon = { Icon(Icons.Default.Info, contentDescription = null) },
+                onValueChange = viewModel::actualizarMotivoMovimiento,
+                label = { Text("Motivo") },
+                singleLine = true,
                 isError = estado.errores.errorMotivo != null,
-                supportingText = { estado.errores.errorMotivo?.let { Text(it) } },
+                supportingText = {
+                    estado.errores.errorMotivo?.let { Text(it) }
+                        ?: Text("Obligatorio si el tipo es Ajuste (RN-04).")
+                },
+                leadingIcon = { Icon(Icons.Default.Edit, contentDescription = null) },
+                trailingIcon = {
+                    if (estado.errores.errorMotivo != null) {
+                        Icon(
+                            Icons.Default.Warning,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.error
+                        )
+                    }
+                },
                 modifier = Modifier.fillMaxWidth()
             )
 
+            Spacer(modifier = Modifier.height(8.dp))
+
             Button(
-                onClick = onSubmit,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 16.dp)
+                onClick = {
+                    if (viewModel.guardarMovimiento(usuario = usuarioNombre)) {
+                        onVolver()
+                    }
+                },
+                modifier = Modifier.fillMaxWidth()
             ) {
-                Icon(Icons.Default.Check, contentDescription = null)
-                Spacer(modifier = Modifier.width(8.dp))
                 Text("Guardar Movimiento")
             }
         }

@@ -17,15 +17,15 @@ abstract class KaijuDatabase : RoomDatabase() {
 
     companion object {
         @Volatile
-        private var INSTANCE: KaijuDatabase? = null
+        private var instancia: KaijuDatabase? = null
 
         fun obtenerInstancia(context: Context): KaijuDatabase =
-            INSTANCE ?: synchronized(this) {
-                INSTANCE ?: Room.databaseBuilder(
+            instancia ?: synchronized(this) {
+                instancia ?: Room.databaseBuilder(
                     context.applicationContext,
                     KaijuDatabase::class.java,
                     "kaiju_database"
-                ).build().also { INSTANCE = it }
+                ).build().also { instancia = it }
             }
     }
 }
