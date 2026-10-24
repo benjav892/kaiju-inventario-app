@@ -2,10 +2,13 @@ package com.example.kaiju.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.kaiju.model.ErroresMovimiento
 import com.example.kaiju.model.ErroresProducto
+import com.example.kaiju.model.FormularioMovimientoEstado
 import com.example.kaiju.model.FormularioProductoEstado
 import com.example.kaiju.model.Movimiento
 import com.example.kaiju.model.Producto
+import com.example.kaiju.model.TipoMovimiento
 import com.example.kaiju.repository.InventarioRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -39,7 +42,7 @@ class InventarioViewModel(
 
     val movimientos: StateFlow<List<Movimiento>> = repository.movimientos.stateIn(
         scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5000),
+        started = SharingStarted.Eagerly,
         initialValue = emptyList()
     )
 
@@ -120,11 +123,70 @@ class InventarioViewModel(
         _estadoFormulario.value = FormularioProductoEstado()
         return true
     }
+    // SECCIÓN FORMULARIO DE MOVIMIENTOS
+    private val _estadoFormularioMovimiento = MutableStateFlow(FormularioMovimientoEstado())
+    val estadoFormularioMovimiento: StateFlow<FormularioMovimientoEstado> = _estadoFormularioMovimiento.asStateFlow()
 
-    fun registrarMovimiento(movimiento: Movimiento, onResultado: (Result<Unit>) -> Unit) {
-        viewModelScope.launch {
-            val resultado = repository.registrarMovimiento(movimiento)
-            onResultado(resultado)
+    fun actualizarCodigoProductoMovimiento(valor: String) = _estadoFormularioMovimiento.update { it.copy(codigoProducto = valor) }
+    fun actualizarTipoMovimiento(valor: TipoMovimiento) = _estadoFormularioMovimiento.update { it.copy(tipo = valor) }
+    fun actualizarCantidadMovimiento(valor: String) = _estadoFormularioMovimiento.update { it.copy(cantidad = valor) }
+    fun actualizarMotivoMovimiento(valor: String) = _estadoFormularioMovimiento.update { it.copy(motivo = valor) }
+
+    fun validarFormularioMovimiento(): Boolean {
+        val estado = _estadoFormularioMovimiento.value
+        val cantidadNumerica = estado.cantidad.toIntOrNull()
+        val productoSeleccionado = productos.value.find { it.codigo == estado.codigoProducto }
+
+        // 1. Producto obligatorio
+        val errorProducto = if (estado.codigoProducto.isBlank()) "Debe seleccionar un producto" else null
+
+        // 2. Cantidad obligatoria, mayor a cero y validación
+        val errorCantidad = when {
+            estado.cantidad.isBlank() -> "La cantidad es obligatoria"
+            cantidadNumerica == null || cantidadNumerica <= 0 -> "La cantidad debe ser un entero mayor a cero"
+            (estado.tipo == TipoMovimiento.SALIDA_VENTA || estado.tipo == TipoMovimiento.SALIDA_CONSUMO) &&
+                    productoSeleccionado != null && cantidadNumerica > productoSeleccionado.stockActual ->
+                "RN-01: Stock insuficiente (Disponible: ${productoSeleccionado.stockActual})"
+            else -> null
         }
+
+        // 3. Validación
+        val errorMotivo = if (estado.tipo == TipoMovimiento.AJUSTE && estado.motivo.isBlank()) {
+            "RN-04: El motivo es obligatorio para ajustes de stock"
+        } else null
+
+        _estadoFormularioMovimiento.update {
+            it.copy(
+                errores = ErroresMovimiento(
+                    errorProducto = errorProducto,
+                    errorTipo = null,
+                    errorCantidad = errorCantidad,
+                    errorMotivo = errorMotivo
+                )
+            )
+        }
+
+        return errorProducto == null && errorCantidad == null && errorMotivo == null
+    }
+
+    fun guardarMovimiento(usuario: String = "Sistema"): Boolean {
+        if (!validarFormularioMovimiento()) return false
+
+        val estado = _estadoFormularioMovimiento.value
+        val movimiento = Movimiento(
+            codigoProducto = estado.codigoProducto,
+            tipo = estado.tipo,
+            cantidad = estado.cantidad.toIntOrNull() ?: 0,
+            motivo = estado.motivo.trim(),
+            fecha = "2026-10-23 18:30",
+            usuario = usuario
+        )
+
+        viewModelScope.launch {
+            repository.registrarMovimiento(movimiento)
+        }
+
+        _estadoFormularioMovimiento.value = FormularioMovimientoEstado()
+        return true
     }
 }
