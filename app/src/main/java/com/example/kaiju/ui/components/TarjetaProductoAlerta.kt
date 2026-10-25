@@ -62,7 +62,7 @@ fun TarjetaProductoAlerta(
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
-                    text = "Disponible: ${producto.stockActual} u.",
+                    text = "Stock: ${producto.stockActual} u.",
                     style = MaterialTheme.typography.bodyMedium,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.error

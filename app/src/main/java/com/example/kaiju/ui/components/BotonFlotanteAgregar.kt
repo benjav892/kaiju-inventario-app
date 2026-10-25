@@ -24,7 +24,7 @@ fun BotonFlotanteAgregar(
         Icon(
             imageVector = Icons.Default.Add,
             contentDescription = descripcion,
-            modifier = Modifier.size(50.dp)
+            modifier = Modifier.size(30.dp)
         )
     }
 }
