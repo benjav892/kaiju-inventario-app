@@ -17,6 +17,8 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 
 class InventarioViewModel(
     private val repository: InventarioRepository
@@ -171,6 +173,7 @@ class InventarioViewModel(
 
     fun guardarMovimiento(usuario: String = "Sistema"): Boolean {
         if (!validarFormularioMovimiento()) return false
+        val fechaActual = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"))
 
         val estado = _estadoFormularioMovimiento.value
         val movimiento = Movimiento(
@@ -178,7 +181,7 @@ class InventarioViewModel(
             tipo = estado.tipo,
             cantidad = estado.cantidad.toIntOrNull() ?: 0,
             motivo = estado.motivo.trim(),
-            fecha = "2026-10-23 18:30",
+            fecha = fechaActual,
             usuario = usuario
         )
 
