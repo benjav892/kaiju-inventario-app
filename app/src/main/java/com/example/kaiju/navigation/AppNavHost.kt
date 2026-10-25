@@ -57,6 +57,14 @@ fun AppNavHost(
     val productos by inventarioViewModel.productos.collectAsState()
     val movimientos by inventarioViewModel.movimientos.collectAsState()
 
+    // Lógica global para cerrar sesión y volver al Login sin historial
+    val onCerrarSesion = {
+        sesionViewModel.cerrarSesion()
+        navController.navigate(Rutas.Login.ruta) {
+            popUpTo(0) { inclusive = true }
+        }
+    }
+
     Scaffold(
         bottomBar = {
             // El menú se despliega únicamente si el usuario inició sesión y está fuera de Login
@@ -136,7 +144,9 @@ fun AppNavHost(
                     viewModel = inventarioViewModel,
                     onProductoClick = { codigo ->
                         navController.navigate(Rutas.DetalleProducto.crearRuta(codigo))
-                    }
+                    },
+                    onVolver = { navController.popBackStack() },
+                    onCerrarSesion = onCerrarSesion
                 )
             }
 
@@ -144,7 +154,9 @@ fun AppNavHost(
             composable(Rutas.FormularioProducto.ruta) {
                 PantallaFormularioProducto(
                     viewModel = inventarioViewModel,
-                    onProductoGuardado = { navController.popBackStack() }
+                    onProductoGuardado = { navController.popBackStack() },
+                    onVolver = { navController.popBackStack() },
+                    onCerrarSesion = onCerrarSesion
                 )
             }
 
@@ -178,7 +190,8 @@ fun AppNavHost(
                     onProductoClick = { codigo ->
                         navController.navigate(Rutas.DetalleProducto.crearRuta(codigo))
                     },
-                    onVolver = { navController.popBackStack()}
+                    onVolver = { navController.popBackStack()},
+                    onCerrarSesion = onCerrarSesion
                 )
             }
 
@@ -188,7 +201,8 @@ fun AppNavHost(
                     viewModel = inventarioViewModel,
                     tiposPermitidos = sesionViewModel.obtenerTiposMovimientoPermitidos(),
                     usuarioNombre = usuarioActivo?.nombre ?: "Sistema",
-                    onVolver = { navController.popBackStack() }
+                    onVolver = { navController.popBackStack() },
+                    onCerrarSesion = onCerrarSesion
                 )
             }
 
@@ -200,7 +214,8 @@ fun AppNavHost(
                     onVolver = { navController.popBackStack() },
                     onProductoClick = { codigo ->
                         navController.navigate(Rutas.DetalleProducto.crearRuta(codigo))
-                    }
+                    },
+                    onCerrarSesion = onCerrarSesion
                 )
             }
             // 8. Historial de Movimientos
@@ -208,7 +223,8 @@ fun AppNavHost(
                 PantallaHistorialMovimientos(
                     viewModel = inventarioViewModel,
                     onNavegarARegistrar = { navController.navigate(Rutas.Movimiento.ruta) },
-                    onVolver = { navController.popBackStack() }
+                    onVolver = { navController.popBackStack() },
+                    onCerrarSesion = onCerrarSesion
                 )
             }
         }

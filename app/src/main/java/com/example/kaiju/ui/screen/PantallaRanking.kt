@@ -41,6 +41,8 @@ import com.example.kaiju.model.Movimiento
 import com.example.kaiju.model.Producto
 import com.example.kaiju.model.TipoMovimiento
 import com.example.kaiju.repository.DatosDePrueba
+import com.example.kaiju.ui.components.BarraSuperior
+import com.example.kaiju.ui.components.BotonCerrarSesion
 
 import com.example.kaiju.ui.components.BotonCompartirReporteNativo
 import com.example.kaiju.ui.components.BotonConPermisoCamara
@@ -67,7 +69,8 @@ fun PantallaRanking(
     productos: List<Producto>,
     movimientos: List<Movimiento>,
     onVolver: () -> Unit = {},
-    onProductoClick: (String) -> Unit = {}
+    onProductoClick: (String) -> Unit = {},
+    onCerrarSesion: () -> Unit = {}
 ) {
 // estado local de UI con remember + mutableStateOf
 // controla si se ordena por más vendidos (true) o menos vendidos (false) y si se despliega el resumen por categoría.
@@ -149,15 +152,12 @@ val colorEncabezadoRanking by animateColorAsState(
 
 Scaffold(
     topBar = {
-        TopAppBar(
-            title = { Text("Ranking y Tendencias") },
-            navigationIcon = {
-                IconButton(onClick = onVolver) {
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = "Volver"
-                    )
-                }
+        BarraSuperior(
+            titulo = "Ranking y Tendencias",
+            mostrarBotonAtras = true,
+            onNavegarAtras = onVolver,
+            acciones = {
+                BotonCerrarSesion(onLogoutClick = onCerrarSesion)
             }
         )
     }

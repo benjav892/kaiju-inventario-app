@@ -24,13 +24,20 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.example.kaiju.ui.components.BarraSuperior
+import com.example.kaiju.ui.components.BotonCerrarSesion
 import com.example.kaiju.ui.components.ListaProductos
 import com.example.kaiju.viewmodel.InventarioViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun PantallaCatalogo(viewModel: InventarioViewModel,
-                     onProductoClick: (String) -> Unit) {
+fun PantallaCatalogo(
+    viewModel: InventarioViewModel,
+    onProductoClick: (String) -> Unit,
+    onVolver: () -> Unit,
+    onCerrarSesion: () -> Unit = {}
+    ){
+
     // Obtiene la lista desde el ViewModel de inventario
     val productosViewModel by viewModel.productos.collectAsState()
 
@@ -50,7 +57,14 @@ fun PantallaCatalogo(viewModel: InventarioViewModel,
 
     Scaffold(
         topBar = {
-            TopAppBar(title = { Text("Productos Kaiju") })
+            BarraSuperior(
+                titulo = "Productos Kaiju",
+                mostrarBotonAtras = true,
+                onNavegarAtras = onVolver,
+                acciones = {
+                    BotonCerrarSesion(onLogoutClick = onCerrarSesion)
+                }
+            )
         }
     ) { padding ->
         Column(

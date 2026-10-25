@@ -25,6 +25,8 @@ import androidx.compose.ui.unit.dp
 import com.example.kaiju.model.Producto
 import com.example.kaiju.ui.components.TarjetaProductoAlerta
 import androidx.compose.ui.tooling.preview.Preview
+import com.example.kaiju.ui.components.BarraSuperior
+import com.example.kaiju.ui.components.BotonCerrarSesion
 import com.example.kaiju.ui.theme.KaijuTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -33,19 +35,17 @@ fun PantallaAlertas(
     productosEnAlerta: List<Producto>,
     onProductoClick: (String) -> Unit,
     modifier: Modifier = Modifier,
-    onVolver: () -> Unit
+    onVolver: () -> Unit,
+    onCerrarSesion: () -> Unit = {}
 ) {
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { Text("Alertas de Reposición") },
-                navigationIcon = {
-                    IconButton(onClick = onVolver) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Volver"
-                        )
-                    }
+            BarraSuperior(
+                titulo = "Alertas de Reposición",
+                mostrarBotonAtras = true,
+                onNavegarAtras = onVolver,
+                acciones = {
+                    BotonCerrarSesion(onLogoutClick = onCerrarSesion)
                 }
             )
         }
