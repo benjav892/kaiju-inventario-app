@@ -20,19 +20,30 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import com.example.kaiju.ui.components.BarraSuperior
+import com.example.kaiju.ui.components.BotonCerrarSesion
 import com.example.kaiju.viewmodel.InventarioViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PantallaFormularioProducto(
     viewModel: InventarioViewModel,
-    onProductoGuardado: () -> Unit = {}
+    onProductoGuardado: () -> Unit = {},
+    onVolver: () -> Unit = {},
+    onCerrarSesion: () -> Unit = {}
 ) {
     val estado by viewModel.estadoFormulario.collectAsState()
 
     Scaffold(
         topBar = {
-            TopAppBar(title = { Text("Agregar Producto") })
+            BarraSuperior(
+                titulo = "Agregar Producto",
+                mostrarBotonAtras = true,
+                onNavegarAtras = onVolver,
+                acciones = {
+                    BotonCerrarSesion(onLogoutClick = onCerrarSesion)
+                }
+            )
         }
     ) { padding ->
         Column(

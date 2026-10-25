@@ -51,7 +51,7 @@ fun PantallaDetalleProducto(
     puedeEditarProducto: Boolean = false,
     onVolver: () -> Unit,
     onIrARegistrarMovimiento: (String) -> Unit = {},
-    onIrAEditarProducto: (String) -> Unit = {}
+    onIrAEditarProducto: (String) -> Unit = {},
 ) {
     // filtrar los movimientos de este producto y ordenar del más reciente al más antiguo
     val historialOrdenado = producto?.let { prod ->

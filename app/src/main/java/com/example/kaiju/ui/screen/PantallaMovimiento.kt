@@ -41,6 +41,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.example.kaiju.model.TipoMovimiento
+import com.example.kaiju.ui.components.BarraSuperior
+import com.example.kaiju.ui.components.BotonCerrarSesion
 import com.example.kaiju.viewmodel.InventarioViewModel
 
 /**
@@ -55,7 +57,8 @@ fun PantallaMovimiento(
     viewModel: InventarioViewModel,
     tiposPermitidos: List<TipoMovimiento>,
     usuarioNombre: String,
-    onVolver: () -> Unit
+    onVolver: () -> Unit,
+    onCerrarSesion: () -> Unit = {}
 ) {
     val estado by viewModel.estadoFormularioMovimiento.collectAsState()
     val productos by viewModel.productos.collectAsState()
@@ -67,12 +70,12 @@ fun PantallaMovimiento(
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { Text("Registrar Movimiento") },
-                navigationIcon = {
-                    IconButton(onClick = onVolver) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Volver")
-                    }
+            BarraSuperior(
+                titulo = "Registrar Movimiento",
+                mostrarBotonAtras = true,
+                onNavegarAtras = onVolver,
+                acciones = {
+                    BotonCerrarSesion(onLogoutClick = onCerrarSesion)
                 }
             )
         }

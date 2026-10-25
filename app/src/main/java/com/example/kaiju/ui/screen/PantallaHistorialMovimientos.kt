@@ -22,6 +22,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.example.kaiju.ui.components.BarraSuperior
+import com.example.kaiju.ui.components.BotonCerrarSesion
 import com.example.kaiju.ui.components.BotonFlotanteAgregar
 import com.example.kaiju.ui.components.TarjetaMovimiento
 import com.example.kaiju.viewmodel.InventarioViewModel
@@ -35,22 +37,20 @@ import com.example.kaiju.viewmodel.InventarioViewModel
 fun PantallaHistorialMovimientos(
     viewModel: InventarioViewModel,
     onNavegarARegistrar: () -> Unit,
-    onVolver: () -> Unit
+    onVolver: () -> Unit,
+    onCerrarSesion: () -> Unit = {}
 ) {
     val movimientos by viewModel.movimientos.collectAsState()
     val productos by viewModel.productos.collectAsState()
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { Text("Historial de Movimientos") },
-                navigationIcon = {
-                    IconButton(onClick = onVolver) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Volver"
-                        )
-                    }
+            BarraSuperior(
+                titulo = "Historial Movimientos",
+                mostrarBotonAtras = true,
+                onNavegarAtras = onVolver,
+                acciones = {
+                    BotonCerrarSesion(onLogoutClick = onCerrarSesion)
                 }
             )
         },
