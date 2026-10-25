@@ -28,6 +28,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.kaiju.model.Producto
+import com.example.kaiju.ui.theme.KaijuTheme
 
 @Composable
 fun TarjetaProducto(producto: Producto, onClick: () -> Unit = {}) {
@@ -57,31 +58,15 @@ fun TarjetaProducto(producto: Producto, onClick: () -> Unit = {}) {
                 Text(
                     text = "Nombre: ${producto.nombre}",
                     color = MaterialTheme.colorScheme.primary,
-                    fontWeight = FontWeight.Bold
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.weight(1f).padding(end = 8.dp)
                 )
 
                 // Marca animada de Stock Bajo
-                AnimatedVisibility(
-                    visible = esStockBajo,
-                    enter = fadeIn(),
-                    exit = fadeOut()
-                ) {
-                    AssistChip(
-                        onClick = {},
-                        label = { Text("¡Stock Bajo!") },
-                        leadingIcon = {
-                            Icon(
-                                Icons.Default.Warning,
-                                contentDescription = null,
-                            )
-                        },
-                        colors = AssistChipDefaults.assistChipColors(
-                            containerColor = MaterialTheme.colorScheme.errorContainer,
-                            labelColor = MaterialTheme.colorScheme.onErrorContainer,
-                            leadingIconContentColor = MaterialTheme.colorScheme.onErrorContainer
-                        )
-                    )
-                }
+                IndicadorStock(
+                    stockActual = producto.stockActual,
+                    stockMinimo = producto.stockMinimo
+                )
             }
 
             Text(text = "Categoría: ${producto.categoria}")
@@ -96,20 +81,22 @@ fun TarjetaProducto(producto: Producto, onClick: () -> Unit = {}) {
     }
 }
 
-@Preview(showBackground = true)
+@Preview(showBackground = true, backgroundColor = 0xFF0B0F19)
 @Composable
 fun PreviewTarjetaProducto() {
-    TarjetaProducto(
-        producto = Producto(
-            codigo = "kai-400",
-            nombre = "Producto1",
-            descripcion = "El primer producto",
-            categoria = "Categoría1",
-            tipo = "Tipo1",
-            precio = 15990,
-            stockActual = 2,
-            stockMinimo = 5,
-            detalle = ""
+    KaijuTheme {
+        TarjetaProducto(
+            producto = Producto(
+                codigo = "kai-400",
+                nombre = "Producto1",
+                descripcion = "El primer producto",
+                categoria = "Categoría1",
+                tipo = "Tipo1",
+                precio = 15990,
+                stockActual = 2,
+                stockMinimo = 5,
+                detalle = ""
+            )
         )
-    )
+    }
 }
