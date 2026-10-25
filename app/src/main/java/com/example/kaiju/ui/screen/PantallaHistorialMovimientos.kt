@@ -9,9 +9,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -24,6 +22,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.example.kaiju.ui.components.BotonFlotanteAgregar
 import com.example.kaiju.ui.components.TarjetaMovimiento
 import com.example.kaiju.viewmodel.InventarioViewModel
 
@@ -56,12 +55,10 @@ fun PantallaHistorialMovimientos(
             )
         },
         floatingActionButton = {
-            FloatingActionButton(onClick = onNavegarARegistrar) {
-                Icon(
-                    imageVector = Icons.Default.Add,
-                    contentDescription = "Nuevo Movimiento"
-                )
-            }
+            BotonFlotanteAgregar(
+                onClick = onNavegarARegistrar,
+                descripcion = "Nuevo Movimiento"
+            )
         }
     ) { innerPadding ->
         if (movimientos.isEmpty()) {

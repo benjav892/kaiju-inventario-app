@@ -16,6 +16,7 @@ import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.AssistChipDefaults
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -42,7 +43,10 @@ fun TarjetaProducto(producto: Producto, onClick: () -> Unit = {}) {
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 6.dp),
-        border = if (esStockBajo) BorderStroke(1.dp, MaterialTheme.colorScheme.error) else null
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceVariant
+        ),
+        border = if (esStockBajo) BorderStroke(1.dp, MaterialTheme.colorScheme.error.copy(alpha = 0.4f)) else BorderStroke(1.dp, MaterialTheme.colorScheme.outline)
     ) {
         Column(modifier = Modifier.padding(12.dp)) {
             Row(

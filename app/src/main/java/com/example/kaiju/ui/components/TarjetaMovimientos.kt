@@ -1,5 +1,6 @@
 package com.example.kaiju.ui.components
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -19,6 +20,7 @@ import androidx.compose.ui.unit.dp
 import com.example.kaiju.model.Movimiento
 import com.example.kaiju.model.Producto
 import com.example.kaiju.model.TipoMovimiento
+import com.example.kaiju.ui.theme.KaijuTheme
 
 /**
  * Tarjeta individual para presentar un registro del historial de movimientos.
@@ -38,6 +40,11 @@ fun TarjetaMovimiento(
             .padding(vertical = 4.dp),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceVariant
+        ),
+        // Borde fino de color rojo suave utilizando la paleta del tema
+        border = BorderStroke(
+            width = 1.dp,
+            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f)
         )
     ) {
         Column(
@@ -110,29 +117,31 @@ fun TarjetaMovimiento(
     }
 }
 
-@Preview(showBackground = true)
+@Preview(showBackground = true,backgroundColor = 0xFF0B0F19)
 @Composable
 fun PreviewTarjetaMovimiento() {
-    TarjetaMovimiento(
-        movimiento = Movimiento(
-            id = 6,
-            codigoProducto = "KJ-CHA-002",
-            tipo = TipoMovimiento.AJUSTE,
-            cantidad = 1,
-            motivo = "Diferencia detectada en conteo físico de bodega",
-            fecha = "2026-10-20 10:15",
-            usuario = "Carla Méndez (Admin)"
-        ),
-        producto = Producto(
-            codigo = "KJ-CHA-002",
-            nombre = "Chaqueta Kaiju Leather",
-            descripcion = "Chaqueta de cuero sintético",
-            categoria = "Chaquetas",
-            tipo = "Ropa",
-            precio = 15990,
-            stockActual = 2,
-            stockMinimo = 5,
-            detalle = ""
+    KaijuTheme {
+        TarjetaMovimiento(
+            movimiento = Movimiento(
+                id = 6,
+                codigoProducto = "KJ-CHA-002",
+                tipo = TipoMovimiento.AJUSTE,
+                cantidad = 1,
+                motivo = "Diferencia detectada en conteo físico de bodega",
+                fecha = "2026-10-20 10:15",
+                usuario = "Carla Méndez (Admin)"
+            ),
+            producto = Producto(
+                codigo = "KJ-CHA-002",
+                nombre = "Chaqueta Kaiju Leather",
+                descripcion = "Chaqueta de cuero sintético",
+                categoria = "Chaquetas",
+                tipo = "Ropa",
+                precio = 15990,
+                stockActual = 2,
+                stockMinimo = 5,
+                detalle = ""
+            )
         )
-    )
+    }
 }
