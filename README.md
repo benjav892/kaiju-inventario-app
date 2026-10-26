@@ -8,9 +8,12 @@ Proyecto del ramo **Desarrollo de Aplicaciones Móviles (Duoc UC)**, Parcial 2.
 
 ## Integrantes
 
-- Benjamin Vasquez (benjam.vasquezc@duocuc.cl)
-- Camilo Vera (c.vera2@duocuc.cl)
-- Sebastian Toro (se.torof@duocuc.cl)
+| Nombre completo | Correo |
+| --- | --- |
+| Benjamin Vasquez | benjam.vasquezc@duocuc.cl |
+| Camilo Vera | c.vera2@duocuc.cl/ veravalenzuelacamilo@gmail.com |
+| Sebastian Toro | se.torof@duocuc.cl |
+
 
 ## Funcionalidades
 
