@@ -131,3 +131,16 @@ La primera ejecución crea la base de datos `kaiju_database` y la precarga con l
 ## Enlace
 
 - Tablero de Trello: https://trello.com/invite/b/6ac68b3b7e9030283f8d51be/ATTI1a76cf2173b3135cc8caf071e90dd3912AD45153/kaiju-app
+
+## Easter egg: Pokédex (PokéAPI)
+
+**API:** PokéAPI (https://pokeapi.co)
+**Endpoint:** `GET https://pokeapi.co/api/v2/pokemon/{nombre}`
+
+### Cómo acceder
+En la pantalla de Login, tocar 5 veces seguidas el título de la barra superior.
+
+### Cómo probarlo
+- **Consulta exitosa:** buscar `pikachu` o un número entre 1 y 25.
+- **Entrada inválida:** dejar el campo vacío y presionar Buscar, o buscar un nombre que no existe.
+- **Falla de conexión:** activar modo avión, buscar un Pokémon que no se haya consultado antes y luego reactivar internet y presionar Reintentar.
