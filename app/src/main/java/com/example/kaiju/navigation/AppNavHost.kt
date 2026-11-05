@@ -35,7 +35,9 @@ import com.example.kaiju.ui.screen.PantallaHistorialMovimientos
 import com.example.kaiju.viewmodel.InventarioViewModel
 import com.example.kaiju.viewmodel.InventarioViewModelFactory
 import com.example.kaiju.viewmodel.SesionViewModel
-
+import com.example.kaiju.ui.screen.PantallaPokedex
+import com.example.kaiju.viewmodel.PokedexViewModel
+import com.example.kaiju.viewmodel.PokedexViewModelFactory
 
 @Composable
 fun AppNavHost(
@@ -47,6 +49,9 @@ fun AppNavHost(
     // Instanciación del ViewModel mediante la fábrica con Context
     val inventarioViewModel: InventarioViewModel = viewModel(
         factory = InventarioViewModelFactory(context)
+    )
+    val pokedexViewModel: PokedexViewModel = viewModel(
+        factory = PokedexViewModelFactory()
     )
 
     val backStackEntry by navController.currentBackStackEntryAsState()
@@ -134,7 +139,8 @@ fun AppNavHost(
                             popUpTo(Rutas.Login.ruta) { inclusive = true }
                             launchSingleTop = true
                         }
-                    }
+                    },
+                            onEasterEgg = { navController.navigate(Rutas.Pokedex.ruta) }
                 )
             }
 
@@ -225,6 +231,13 @@ fun AppNavHost(
                     onNavegarARegistrar = { navController.navigate(Rutas.Movimiento.ruta) },
                     onVolver = { navController.popBackStack() },
                     onCerrarSesion = onCerrarSesion
+                )
+            }
+            // 9. Pokédex (easter egg)
+            composable(Rutas.Pokedex.ruta) {
+                PantallaPokedex(
+                    viewModel = pokedexViewModel,
+                    onVolver = { navController.popBackStack() }
                 )
             }
         }

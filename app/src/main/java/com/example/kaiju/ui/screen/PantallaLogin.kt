@@ -45,23 +45,34 @@ import androidx.compose.ui.unit.dp
 import com.example.kaiju.model.Rol
 import com.example.kaiju.model.Usuario
 import com.example.kaiju.viewmodel.SesionViewModel
+import androidx.compose.runtime.mutableIntStateOf
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PantallaLogin(
     sesionViewModel: SesionViewModel,
-    onLoginExitoso: () -> Unit
+    onLoginExitoso: () -> Unit,
+    onEasterEgg: () -> Unit = {}
 ) {
     // suscripción reactiva al StateFlow del ViewModel
     val estadoFormulario by sesionViewModel.estadoFormulario.collectAsState()
     val usuarios = sesionViewModel.usuariosDisponibles
 
     var menuExpandido by remember { mutableStateOf(false) }
-
+    var toquesTitulo by remember { mutableIntStateOf(0) }
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Kaiju - Control de Inventario") }
+                title = { Text(
+                    text = "Kaiju - Control de Inventario",
+                    modifier = Modifier.clickable {
+                        toquesTitulo++
+                        if (toquesTitulo >= 5) {
+                            toquesTitulo = 0
+                            onEasterEgg()
+                        }
+                    }
+                ) }
             )
         }
     ) { innerPadding ->
