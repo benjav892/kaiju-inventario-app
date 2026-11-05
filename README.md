@@ -144,3 +144,6 @@ En la pantalla de Login, tocar 5 veces seguidas el título de la barra superior.
 - **Consulta exitosa:** buscar `pikachu` o un número entre 1 y 25.
 - **Entrada inválida:** dejar el campo vacío y presionar Buscar, o buscar un nombre que no existe.
 - **Falla de conexión:** activar modo avión, buscar un Pokémon que no se haya consultado antes y luego reactivar internet y presionar Reintentar.
+### Captura
+- <img width="800" height="800" alt="Screenshot_20261105_183038" src="https://github.com/user-attachments/assets/fa0648cb-bb65-4c49-bb07-b922eeca3bb3" />
+
