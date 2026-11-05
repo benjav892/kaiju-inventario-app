@@ -8,6 +8,7 @@ sealed class Rutas(val ruta: String) {
     object HistorialMovimientos : Rutas("historialMovimientos")
     object Alertas : Rutas("alertas")
     object Ranking : Rutas("ranking")
+    object Pokedex : Rutas("pokedex")
 
     // El detalle recibe el código del producto dentro de la ruta.
     object DetalleProducto : Rutas("detalleProducto/{codigo}") {
