@@ -176,14 +176,27 @@ fun AppNavHost(
 
                 PantallaDetalleProducto(
                     producto = productoSeleccionado,
-                    movimientos = movimientos.filter { it.codigoProducto == codigoProducto },
+                    movimientos = movimientos,
                     puedeEditarProducto = sesionViewModel.puedeCrearEditarProductos(),
                     onVolver = { navController.popBackStack() },
                     onIrARegistrarMovimiento = { _ ->
-                        navController.navigate(Rutas.Movimiento.ruta) { launchSingleTop = true }
+                        navController.navigate(Rutas.Movimiento.ruta) {
+                            launchSingleTop = true
+                        }
                     },
                     onIrAEditarProducto = { _ ->
+                        // Navegamos directo a la ruta base definida por tus compañeros
                         navController.navigate(Rutas.FormularioProducto.ruta)
+                    },
+                    // 1. Guarda en Room la imagen elegida desde la galería
+                    onActualizarImagenProducto = { nuevaUri ->
+                        inventarioViewModel.actualizarImagenProducto(codigoProducto, nuevaUri)
+                    },
+                    // 2. Navega al detalle del producto escaneado armando la ruta a mano
+                    onProductoEscaneado = { codigoLeido ->
+                        navController.navigate("detalleProducto/$codigoLeido") {
+                            launchSingleTop = true
+                        }
                     }
                 )
             }

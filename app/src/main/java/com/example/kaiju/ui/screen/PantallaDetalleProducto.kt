@@ -1,5 +1,6 @@
 package com.example.kaiju.ui.screen
 
+import android.net.Uri
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.layout.Arrangement
@@ -7,9 +8,11 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
@@ -31,14 +34,16 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import coil3.compose.AsyncImage
 import com.example.kaiju.model.Movimiento
 import com.example.kaiju.model.Producto
 import com.example.kaiju.model.TipoMovimiento
 import com.example.kaiju.repository.DatosDePrueba
-
 import com.example.kaiju.ui.components.BotonCompartirReporteNativo
 import com.example.kaiju.ui.components.BotonConPermisoCamara
 import com.example.kaiju.ui.components.SelectorImagenProductoNativo
@@ -52,6 +57,8 @@ fun PantallaDetalleProducto(
     onVolver: () -> Unit,
     onIrARegistrarMovimiento: (String) -> Unit = {},
     onIrAEditarProducto: (String) -> Unit = {},
+    onActualizarImagenProducto: (String) -> Unit = {},
+    onProductoEscaneado: (String) -> Unit = {}
 ) {
     // filtrar los movimientos de este producto y ordenar del más reciente al más antiguo
     val historialOrdenado = producto?.let { prod ->
@@ -73,7 +80,6 @@ fun PantallaDetalleProducto(
                     }
                 },
                 actions = {
-                    // solo el Administrador ve la acción para editar el producto
                     if (puedeEditarProducto && producto != null) {
                         IconButton(onClick = { onIrAEditarProducto(producto.codigo) }) {
                             Icon(
@@ -109,7 +115,6 @@ fun PantallaDetalleProducto(
         } else {
             val enAlertaStockBajo = producto.stockActual <= producto.stockMinimo
 
-            // animación con proposito: el color de la tarjeta de stock cambia gradualmente según si está en alerta o normal
             val colorTarjetaStock by animateColorAsState(
                 targetValue = if (enAlertaStockBajo) {
                     MaterialTheme.colorScheme.errorContainer
@@ -126,7 +131,7 @@ fun PantallaDetalleProducto(
                     .padding(16.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                // ficha técnica del producto
+                // ficha técnica del producto + imagen real guardada desde galería
                 item {
                     Card(
                         modifier = Modifier.fillMaxWidth(),
@@ -136,8 +141,23 @@ fun PantallaDetalleProducto(
                     ) {
                         Column(
                             modifier = Modifier.padding(16.dp),
-                            verticalArrangement = Arrangement.spacedBy(6.dp)
+                            verticalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
+                            // si el producto tiene una foto asignada desde la galería, la dibuja aquí mismo
+                            AnimatedVisibility(visible = !producto.imagenUri.isNullOrBlank()) {
+                                producto.imagenUri?.let { uriTexto ->
+                                    AsyncImage(
+                                        model = Uri.parse(uriTexto),
+                                        contentDescription = "Foto de ${producto.nombre}",
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .height(220.dp)
+                                            .clip(RoundedCornerShape(12.dp)),
+                                        contentScale = ContentScale.Crop
+                                    )
+                                }
+                            }
+
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
                                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -229,8 +249,6 @@ fun PantallaDetalleProducto(
                                 )
                             }
 
-                            // animación con propósito:
-                            // AnimatedVisibility despliega la advertencia cuando stockActual <= stockMinimo
                             AnimatedVisibility(visible = enAlertaStockBajo) {
                                 Row(
                                     verticalAlignment = Alignment.CenterVertically,
@@ -253,7 +271,7 @@ fun PantallaDetalleProducto(
                     }
                 }
 
-                // conexion de navegacion hacia PantallaMovimiento
+                // conexión de navegación hacia PantallaMovimiento
                 item {
                     Button(
                         onClick = { onIrARegistrarMovimiento(producto.codigo) },
@@ -267,15 +285,23 @@ fun PantallaDetalleProducto(
                         Text("Registrar Movimiento de Stock")
                     }
                 }
-                // recursos nativos integrados en el Detalle
+
+                // recursos nativos
                 item {
                     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         BotonConPermisoCamara(
-                            textoBoton = "Verificar Etiqueta con Cámara (Permiso)",
-                            onPermisoConcedido = { _ -> },
+                            textoBoton = "Escanear Código QR / Barras con Cámara",
+                            onPermisoConcedido = { codigoEscaneado ->
+                                onProductoEscaneado(codigoEscaneado)
+                            },
                             onSinPermiso = { }
                         )
-                        SelectorImagenProductoNativo()
+                        SelectorImagenProductoNativo(
+                            imagenActualUri = producto.imagenUri,
+                            onImagenSeleccionada = { nuevaUri ->
+                                onActualizarImagenProducto(nuevaUri)
+                            }
+                        )
                         BotonCompartirReporteNativo(
                             tituloReporte = "Ficha de Stock Kaiju - ${producto.codigo}",
                             contenidoReporte = "Producto: ${producto.nombre} (${producto.codigo})\n" +
@@ -325,7 +351,6 @@ fun PantallaDetalleProducto(
     }
 }
 
-// componente reutilizable que dibuja un registro de movimiento en el historial
 @Composable
 fun TarjetaMovimientoHistorial(movimiento: Movimiento) {
     val etiquetaTipo = when (movimiento.tipo) {
@@ -381,12 +406,11 @@ fun TarjetaMovimientoHistorial(movimiento: Movimiento) {
     }
 }
 
-// vista previa para verificar el diseño directamente en el ide
 @Preview(showBackground = true)
 @Composable
 fun PreviewPantallaDetalleProducto() {
     PantallaDetalleProducto(
-        producto = DatosDePrueba.productosIniciales[1], // Producto en alerta de stock bajo
+        producto = DatosDePrueba.productosIniciales[1],
         movimientos = DatosDePrueba.movimientosIniciales,
         puedeEditarProducto = true,
         onVolver = {}

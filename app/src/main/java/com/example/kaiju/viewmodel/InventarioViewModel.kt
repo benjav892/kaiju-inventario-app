@@ -125,6 +125,17 @@ class InventarioViewModel(
         _estadoFormulario.value = FormularioProductoEstado()
         return true
     }
+
+     // guarda de forma persistente en Room la imagen seleccionada desde la galería
+     // para el producto indicado
+    fun actualizarImagenProducto(codigoProducto: String, nuevaImagenUri: String) {
+        val productoActual = productos.value.find { it.codigo == codigoProducto } ?: return
+        val productoActualizado = productoActual.copy(imagenUri = nuevaImagenUri)
+        viewModelScope.launch {
+            repository.insertarProducto(productoActualizado)
+        }
+    }
+
     // SECCIÓN FORMULARIO DE MOVIMIENTOS
     private val _estadoFormularioMovimiento = MutableStateFlow(FormularioMovimientoEstado())
     val estadoFormularioMovimiento: StateFlow<FormularioMovimientoEstado> = _estadoFormularioMovimiento.asStateFlow()

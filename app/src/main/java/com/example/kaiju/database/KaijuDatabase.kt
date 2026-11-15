@@ -8,7 +8,8 @@ import androidx.room.TypeConverters
 import com.example.kaiju.model.Movimiento
 import com.example.kaiju.model.Producto
 
-@Database(entities = [Producto::class, Movimiento::class], version = 1, exportSchema = false)
+// cambiar la versión a 2 para avisar a Room que la estructura cambió (implementacion recursos nativos funcionales)
+@Database(entities = [Producto::class, Movimiento::class], version = 2, exportSchema = false)
 @TypeConverters(Converters::class)
 abstract class KaijuDatabase : RoomDatabase() {
 
@@ -25,7 +26,10 @@ abstract class KaijuDatabase : RoomDatabase() {
                     context.applicationContext,
                     KaijuDatabase::class.java,
                     "kaiju_database"
-                ).build().also { instancia = it }
+                )
+                    // Room recrea la base de datos sin caerse:
+                    .fallbackToDestructiveMigration()
+                    .build().also { instancia = it }
             }
     }
 }

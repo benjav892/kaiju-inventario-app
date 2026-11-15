@@ -35,9 +35,6 @@ import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 
-//recurso nativo 2a: Botón para compartir reportes de stock o ventas con otras apps mediante
-// Intent.ACTION_SEND y confirmación háptica con LocalHapticFeedback
-
 @Composable
 fun BotonCompartirReporteNativo(
     tituloReporte: String,
@@ -49,7 +46,6 @@ fun BotonCompartirReporteNativo(
 
     OutlinedButton(
         onClick = {
-            // confirmación táctil al ejecutar el recurso nativo
             haptic.performHapticFeedback(HapticFeedbackType.LongPress)
             compartirTextoNativo(
                 context = context,
@@ -68,27 +64,33 @@ fun BotonCompartirReporteNativo(
     }
 }
 
-// recurso nativo 2b: selector seguro de fotos de la galería con PickVisualMedia sin necesidad
-// de solicitar permisos de almacenamiento completo
 @Composable
 fun SelectorImagenProductoNativo(
-    onImagenSeleccionada: (Uri) -> Unit = {}
+    imagenActualUri: String? = null,
+    onImagenSeleccionada: (String) -> Unit = {}
 ) {
+    val context = LocalContext.current
     val haptic = LocalHapticFeedback.current
-    var uriSeleccionada by remember { mutableStateOf<Uri?>(null) }
-    var avisoAlternativa by remember { mutableStateOf(false) }
+    var avisoSinSeleccion by remember { mutableStateOf(false) }
 
     val selectorFoto = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.PickVisualMedia()
-    ) { uri ->
-        // uri es null si el usuario cerró el selector sin elegir
+    ) { uri: Uri? ->
         if (uri != null) {
+            // solicita permiso persistente de lectura sobre el Uri elegido para que sobreviva al reiniciar la app
+            try {
+                context.contentResolver.takePersistableUriPermission(
+                    uri,
+                    Intent.FLAG_GRANT_READ_URI_PERMISSION
+                )
+            } catch (_: SecurityException) {
+            }
+
             haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-            uriSeleccionada = uri
-            avisoAlternativa = false
-            onImagenSeleccionada(uri)
+            avisoSinSeleccion = false
+            onImagenSeleccionada(uri.toString())
         } else {
-            avisoAlternativa = true
+            avisoSinSeleccion = true
         }
     }
 
@@ -109,10 +111,16 @@ fun SelectorImagenProductoNativo(
                 contentDescription = "Elegir imagen del producto",
                 modifier = Modifier.padding(end = 8.dp)
             )
-            Text("Elegir Foto de Referencia (Galería)")
+            Text(
+                if (imagenActualUri.isNullOrBlank()) {
+                    "Elegir Foto de Referencia (Galería)"
+                } else {
+                    "Cambiar Foto del Producto (Galería)"
+                }
+            )
         }
 
-        AnimatedVisibility(visible = uriSeleccionada != null || avisoAlternativa) {
+        AnimatedVisibility(visible = !imagenActualUri.isNullOrBlank() || avisoSinSeleccion) {
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 colors = CardDefaults.cardColors(
@@ -132,9 +140,11 @@ fun SelectorImagenProductoNativo(
                         tint = MaterialTheme.colorScheme.primary
                     )
                     Text(
-                        text = uriSeleccionada?.let {
-                            "Imagen vinculada desde galería: ${it.lastPathSegment ?: "foto seleccionada"}"
-                        } ?: "No se seleccionó imagen. El producto mantiene su ficha estándar sin foto.",
+                        text = if (!imagenActualUri.isNullOrBlank()) {
+                            "Foto guardada en el producto."
+                        } else {
+                            "No se seleccionó una foto nueva."
+                        },
                         style = MaterialTheme.typography.bodySmall,
                         fontWeight = FontWeight.Bold
                     )
@@ -144,7 +154,6 @@ fun SelectorImagenProductoNativo(
     }
 }
 
-// funcion auxiliar que invoca la hoja de compartir nativa de Android (Intent.ACTION_SEND)
 private fun compartirTextoNativo(
     context: Context,
     asunto: String,
