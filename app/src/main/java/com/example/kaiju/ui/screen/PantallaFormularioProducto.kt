@@ -13,7 +13,6 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -37,7 +36,7 @@ fun PantallaFormularioProducto(
     Scaffold(
         topBar = {
             BarraSuperior(
-                titulo = "Agregar Producto",
+                titulo = if (estado.esEdicion) "Editar Producto" else "Agregar Producto",
                 mostrarBotonAtras = true,
                 onNavegarAtras = onVolver,
                 acciones = {
@@ -54,17 +53,19 @@ fun PantallaFormularioProducto(
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            // 1. Código
+            // código (bloqueado en modo edición por ser PrimaryKey en Room)
             OutlinedTextField(
                 value = estado.codigo,
                 onValueChange = viewModel::actualizarCodigo,
-                label = { Text("Código") },
+                label = { Text(if (estado.esEdicion) "Código (no editable)" else "Código") },
+                enabled = !estado.esEdicion,
                 isError = estado.errores.errorCodigo != null,
                 supportingText = { estado.errores.errorCodigo?.let { Text(it) } },
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth()
             )
-            //2. Nombre
+
+            // nombre
             OutlinedTextField(
                 value = estado.nombre,
                 onValueChange = viewModel::actualizarNombre,
@@ -75,7 +76,7 @@ fun PantallaFormularioProducto(
                 modifier = Modifier.fillMaxWidth()
             )
 
-            // 3. Descripción
+            // descripción
             OutlinedTextField(
                 value = estado.descripcion,
                 onValueChange = viewModel::actualizarDescripcion,
@@ -84,7 +85,7 @@ fun PantallaFormularioProducto(
                 modifier = Modifier.fillMaxWidth()
             )
 
-            // 4. Categoría
+            // categoría
             OutlinedTextField(
                 value = estado.categoria,
                 onValueChange = viewModel::actualizarCategoria,
@@ -95,7 +96,7 @@ fun PantallaFormularioProducto(
                 modifier = Modifier.fillMaxWidth()
             )
 
-            // 5. Tipo
+            // tipo
             OutlinedTextField(
                 value = estado.tipo,
                 onValueChange = viewModel::actualizarTipo,
@@ -104,7 +105,7 @@ fun PantallaFormularioProducto(
                 modifier = Modifier.fillMaxWidth()
             )
 
-            // 6. Precio
+            // precio
             OutlinedTextField(
                 value = estado.precio,
                 onValueChange = viewModel::actualizarPrecio,
@@ -116,7 +117,7 @@ fun PantallaFormularioProducto(
                 modifier = Modifier.fillMaxWidth()
             )
 
-            // 7. Stock Actual
+            // stock Actual
             OutlinedTextField(
                 value = estado.stockActual,
                 onValueChange = viewModel::actualizarStockActual,
@@ -126,7 +127,7 @@ fun PantallaFormularioProducto(
                 modifier = Modifier.fillMaxWidth()
             )
 
-            // 8. Stock Mínimo
+            // stock mínimo
             OutlinedTextField(
                 value = estado.stockMinimo,
                 onValueChange = viewModel::actualizarStockMinimo,
@@ -138,7 +139,7 @@ fun PantallaFormularioProducto(
                 modifier = Modifier.fillMaxWidth()
             )
 
-            // 9. Detalle
+            // detalle
             OutlinedTextField(
                 value = estado.detalle,
                 onValueChange = viewModel::actualizarDetalle,
@@ -147,7 +148,7 @@ fun PantallaFormularioProducto(
                 modifier = Modifier.fillMaxWidth()
             )
 
-            // Botón Guardar
+            // botón guardar
             Button(
                 onClick = {
                     val exito = viewModel.guardarProducto()
@@ -159,9 +160,8 @@ fun PantallaFormularioProducto(
                     .fillMaxWidth()
                     .padding(top = 8.dp)
             ) {
-                Text("Guardar Producto")
+                Text(if (estado.esEdicion) "Guardar Cambios" else "Guardar Producto")
             }
         }
     }
 }
-

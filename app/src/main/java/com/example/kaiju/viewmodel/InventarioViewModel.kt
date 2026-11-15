@@ -48,6 +48,30 @@ class InventarioViewModel(
         initialValue = emptyList()
     )
 
+    // limpia el formulario cuando se va a crear un producto desde cero
+    fun prepararNuevoProducto() {
+        _estadoFormulario.value = FormularioProductoEstado()
+    }
+
+    // precarga todos los datos del producto seleccionado para editarlo
+    fun cargarProductoParaEdicion(codigoProducto: String) {
+        val producto = productos.value.find { it.codigo == codigoProducto } ?: return
+        _estadoFormulario.value = FormularioProductoEstado(
+            codigo = producto.codigo,
+            nombre = producto.nombre,
+            descripcion = producto.descripcion,
+            categoria = producto.categoria,
+            tipo = producto.tipo,
+            precio = producto.precio.toString(),
+            stockActual = producto.stockActual.toString(),
+            stockMinimo = producto.stockMinimo.toString(),
+            detalle = producto.detalle,
+            imagenUri = producto.imagenUri,
+            esEdicion = true,
+            errores = ErroresProducto()
+        )
+    }
+
     // Funciones de actualización de campos del formulario
     fun actualizarCodigo(valor: String) = _estadoFormulario.update { it.copy(codigo = valor) }
     fun actualizarNombre(valor: String) = _estadoFormulario.update { it.copy(nombre = valor) }
@@ -68,7 +92,7 @@ class InventarioViewModel(
 
         val errorCodigo = when {
             codigo.isBlank() -> "El código es obligatorio"
-            productos.value.any { it.codigo == codigo } -> "Ese código ya existe"
+            !estado.esEdicion && productos.value.any { it.codigo == codigo } -> "Ese código ya existe"
             else -> null
         }
         val errorNombre =
@@ -101,7 +125,7 @@ class InventarioViewModel(
                 errorPrecio == null && errorStockMinimo == null
     }
 
-    // Persistencia en base de datos local (Room)
+    // Persistencia en base de datos local (Room) para creación y edición
     fun guardarProducto(): Boolean {
         if (!validarFormulario()) return false
 
@@ -115,7 +139,8 @@ class InventarioViewModel(
             precio = estado.precio.toInt(),
             stockActual = estado.stockActual.toIntOrNull() ?: 0,
             stockMinimo = estado.stockMinimo.toInt(),
-            detalle = estado.detalle.ifBlank { "" }
+            detalle = estado.detalle.ifBlank { "" },
+            imagenUri = estado.imagenUri
         )
 
         viewModelScope.launch {
@@ -126,8 +151,6 @@ class InventarioViewModel(
         return true
     }
 
-     // guarda de forma persistente en Room la imagen seleccionada desde la galería
-     // para el producto indicado
     fun actualizarImagenProducto(codigoProducto: String, nuevaImagenUri: String) {
         val productoActual = productos.value.find { it.codigo == codigoProducto } ?: return
         val productoActualizado = productoActual.copy(imagenUri = nuevaImagenUri)

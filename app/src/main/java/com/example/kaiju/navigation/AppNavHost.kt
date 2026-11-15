@@ -116,7 +116,10 @@ fun AppNavHost(
                     if (sesionViewModel.puedeCrearEditarProductos()) {
                         NavigationBarItem(
                             selected = rutaActual == Rutas.FormularioProducto.ruta,
-                            onClick = { navController.navigate(Rutas.FormularioProducto.ruta) { launchSingleTop = true } },
+                            onClick = {
+                                inventarioViewModel.prepararNuevoProducto()
+                                navController.navigate(Rutas.FormularioProducto.ruta) { launchSingleTop = true }
+                            },
                             icon = { Icon(Icons.Filled.Add, contentDescription = null) },
                             label = { Text("Agregar") }
                         )
@@ -184,8 +187,8 @@ fun AppNavHost(
                             launchSingleTop = true
                         }
                     },
-                    onIrAEditarProducto = { _ ->
-                        // Navegamos directo a la ruta base definida por tus compañeros
+                    onIrAEditarProducto = { codigo ->
+                        inventarioViewModel.cargarProductoParaEdicion(codigo)
                         navController.navigate(Rutas.FormularioProducto.ruta)
                     },
                     // 1. Guarda en Room la imagen elegida desde la galería
