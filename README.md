@@ -46,9 +46,9 @@ La barra de navegación inferior se adapta al rol: el Administrador ve **Histori
 
 ## Recursos nativos
 
-- **Cámara**: botón de escaneo con flujo completo de permisos en tiempo de ejecución (solicitud, explicación propia con diálogo, reconsulta al volver desde Ajustes mediante `LifecycleResumeEffect`). Incluye un simulador de lectura de etiquetas para probar en emulador.
-- **Compartir**: reportes de stock y ventas mediante `Intent.ACTION_SEND`, con confirmación háptica.
-- **Galería**: selector de foto de referencia con `PickVisualMedia` (no requiere permisos de almacenamiento).
+- **Cámara (Lector de Códigos Real)**: Botón de escaneo con flujo completo de permisos en tiempo de ejecución (solicitud, explicación con diálogo y reconsulta al volver de Ajustes con `LifecycleResumeEffect`). Utiliza la cámara real del dispositivo junto con **ML Kit Barcode Scanning** para leer códigos QR o de barras de los productos físicos, navegando automáticamente al detalle del producto escaneado mediante Jetpack Navigation con blindaje de ciclo de vida (`LaunchedEffect` y `URLEncoder`).
+- **Galería (Persistencia Visual)**: Selector seguro de foto de referencia con `PickVisualMedia` (no requiere permisos completos de almacenamiento completo). La imagen seleccionada se guarda en Room y se renderiza en la ficha técnica del producto utilizando **Coil 3**.
+- **Compartir**: Envío de reportes de stock y ventas hacia otras aplicaciones mediante `Intent.ACTION_SEND`, acompañado de confirmación háptica (`LocalHapticFeedback`).
 
 ## Tecnologías
 
@@ -118,15 +118,14 @@ La primera ejecución crea la base de datos `kaiju_database` y la precarga con l
 
 ## Limitaciones conocidas
 
-- El login es de demostración: no hay contraseñas ni backend.
-- El escáner de la cámara es un simulador; aún no lee códigos reales.
-- La base de datos está en la versión 1 sin migraciones (`exportSchema = false`).
+- El login es de demostración: no hay contraseñas ni validación contra backend real.
+- Las imágenes vinculadas desde la galería dependen de la persistencia de permisos locales (`takePersistableUriPermission`), por lo que podrían dejar de mostrarse si el usuario mueve o borra la foto original de su almacenamiento.
 
 ## Decisiones propias del equipo
 
 - Se decidió implementar un login de demostración sin backend: el usuario se elige entre tres perfiles de prueba y no hay contraseñas.
-- Se decidió solicitar el permiso de cámara para el escaneo de códigos de productos.
-- Se decidió solicitar acceso a la galería del dispositivo para elegir la foto de referencia de un producto.
+- Se implementó **ML Kit** para el escaneo real de códigos QR/Barras mediante la cámara en lugar de un simulador estático, aplicando "Graceful Degradation" (degradación elegante) para permitir el ingreso manual si el usuario rechaza los permisos.
+- Se implementó la persistencia visual y actualización controlada en Room (migración destructiva versión 2) para integrar fotografías reales en la ficha técnica del producto seleccionadas desde la galería.
 
 ## Enlace
 
