@@ -1,5 +1,6 @@
 package com.example.kaiju.ui.screen
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -12,24 +13,23 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -38,6 +38,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.example.kaiju.model.TipoMovimiento
@@ -45,12 +46,6 @@ import com.example.kaiju.ui.components.BarraSuperior
 import com.example.kaiju.ui.components.BotonCerrarSesion
 import com.example.kaiju.viewmodel.InventarioViewModel
 
-/**
- * Pantalla "Registrar Movimiento": Formulario 100% declarativo.
- *
- * Lee el estado desde [viewModel.estadoFormularioMovimiento] y los productos desde [viewModel.productos].
- * Delega toda la lógica de validaciones y almacenamiento al [InventarioViewModel].
- */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PantallaMovimiento(
@@ -242,13 +237,46 @@ fun PantallaMovimiento(
                 modifier = Modifier.fillMaxWidth()
             )
 
+            // aviso visual en pantalla cuando el repositorio rechaza el movimiento
+            AnimatedVisibility(visible = estado.errores.errorGeneral != null) {
+                estado.errores.errorGeneral?.let { mensajeError ->
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = CardDefaults.cardColors(
+                            containerColor = MaterialTheme.colorScheme.errorContainer
+                        )
+                    ) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(12.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Warning,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.error
+                            )
+                            Text(
+                                text = mensajeError,
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onErrorContainer,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                    }
+                }
+            }
+
             Spacer(modifier = Modifier.height(8.dp))
 
             Button(
                 onClick = {
-                    if (viewModel.guardarMovimiento(usuario = usuarioNombre)) {
-                        onVolver()
-                    }
+                    viewModel.guardarMovimiento(
+                        usuario = usuarioNombre,
+                        onExito = onVolver
+                    )
                 },
                 modifier = Modifier.fillMaxWidth()
             ) {

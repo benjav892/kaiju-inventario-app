@@ -163,32 +163,35 @@ class InventarioViewModel(
     private val _estadoFormularioMovimiento = MutableStateFlow(FormularioMovimientoEstado())
     val estadoFormularioMovimiento: StateFlow<FormularioMovimientoEstado> = _estadoFormularioMovimiento.asStateFlow()
 
-    fun actualizarCodigoProductoMovimiento(valor: String) = _estadoFormularioMovimiento.update { it.copy(codigoProducto = valor) }
-    fun actualizarTipoMovimiento(valor: TipoMovimiento) = _estadoFormularioMovimiento.update { it.copy(tipo = valor) }
-    fun actualizarCantidadMovimiento(valor: String) = _estadoFormularioMovimiento.update { it.copy(cantidad = valor) }
-    fun actualizarMotivoMovimiento(valor: String) = _estadoFormularioMovimiento.update { it.copy(motivo = valor) }
+    fun actualizarCodigoProductoMovimiento(valor: String) = _estadoFormularioMovimiento.update {
+        it.copy(codigoProducto = valor, errores = it.errores.copy(errorProducto = null, errorGeneral = null))
+    }
+    fun actualizarTipoMovimiento(valor: TipoMovimiento) = _estadoFormularioMovimiento.update {
+        it.copy(tipo = valor, errores = it.errores.copy(errorTipo = null, errorCantidad = null, errorGeneral = null))
+    }
+    fun actualizarCantidadMovimiento(valor: String) = _estadoFormularioMovimiento.update {
+        it.copy(cantidad = valor, errores = it.errores.copy(errorCantidad = null, errorGeneral = null))
+    }
+    fun actualizarMotivoMovimiento(valor: String) = _estadoFormularioMovimiento.update {
+        it.copy(motivo = valor, errores = it.errores.copy(errorMotivo = null, errorGeneral = null))
+    }
 
     fun validarFormularioMovimiento(): Boolean {
         val estado = _estadoFormularioMovimiento.value
         val cantidadNumerica = estado.cantidad.toIntOrNull()
-        val productoSeleccionado = productos.value.find { it.codigo == estado.codigoProducto }
 
-        // 1. Producto obligatorio
+        // producto obligatorio
         val errorProducto = if (estado.codigoProducto.isBlank()) "Debe seleccionar un producto" else null
 
-        // 2. Cantidad obligatoria, mayor a cero y validación
+        // cantidad obligatoria y entero mayor a cero
         val errorCantidad = when {
             estado.cantidad.isBlank() -> "La cantidad es obligatoria"
             cantidadNumerica == null || cantidadNumerica <= 0 -> "La cantidad debe ser un entero mayor a cero"
-            (estado.tipo == TipoMovimiento.SALIDA_VENTA || estado.tipo == TipoMovimiento.SALIDA_CONSUMO) &&
-                    productoSeleccionado != null && cantidadNumerica > productoSeleccionado.stockActual ->
-                "RN-01: Stock insuficiente (Disponible: ${productoSeleccionado.stockActual})"
             else -> null
         }
 
-        // 3. Validación
         val errorMotivo = if (estado.tipo == TipoMovimiento.AJUSTE && estado.motivo.isBlank()) {
-            "RN-04: El motivo es obligatorio para ajustes de stock"
+            "El motivo es obligatorio para ajustes de stock"
         } else null
 
         _estadoFormularioMovimiento.update {
@@ -197,7 +200,8 @@ class InventarioViewModel(
                     errorProducto = errorProducto,
                     errorTipo = null,
                     errorCantidad = errorCantidad,
-                    errorMotivo = errorMotivo
+                    errorMotivo = errorMotivo,
+                    errorGeneral = null
                 )
             )
         }
@@ -205,8 +209,11 @@ class InventarioViewModel(
         return errorProducto == null && errorCantidad == null && errorMotivo == null
     }
 
-    fun guardarMovimiento(usuario: String = "Sistema"): Boolean {
-        if (!validarFormularioMovimiento()) return false
+    fun guardarMovimiento(
+        usuario: String = "Sistema",
+        onExito: () -> Unit = {}
+    ) {
+        if (!validarFormularioMovimiento()) return
         val fechaActual = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"))
 
         val estado = _estadoFormularioMovimiento.value
@@ -220,10 +227,23 @@ class InventarioViewModel(
         )
 
         viewModelScope.launch {
-            repository.registrarMovimiento(movimiento)
+            val resultado = repository.registrarMovimiento(movimiento)
+            resultado
+                .onSuccess {
+                    _estadoFormularioMovimiento.value = FormularioMovimientoEstado()
+                    onExito()
+                }
+                .onFailure { error ->
+                    val mensajeRechazo = error.message ?: "El repositorio rechazó el movimiento."
+                    _estadoFormularioMovimiento.update { actual ->
+                        actual.copy(
+                            errores = actual.errores.copy(
+                                errorCantidad = mensajeRechazo,
+                                errorGeneral = mensajeRechazo
+                            )
+                        )
+                    }
+                }
         }
-
-        _estadoFormularioMovimiento.value = FormularioMovimientoEstado()
-        return true
     }
 }

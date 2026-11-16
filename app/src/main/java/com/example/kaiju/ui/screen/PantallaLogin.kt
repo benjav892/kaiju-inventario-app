@@ -92,7 +92,7 @@ fun PantallaLogin(
             )
 
             Text(
-                text = "Selecciona tu perfil de trabajo para acceder a las funciones de inventario según tu rol (RF-01).",
+                text = "Selecciona tu perfil de trabajo para acceder a las funciones de inventario según tu rol.",
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )

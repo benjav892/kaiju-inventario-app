@@ -4,7 +4,8 @@ data class ErroresMovimiento(
     val errorProducto: String? = null,
     val errorTipo: String? = null,
     val errorCantidad: String? = null,
-    val errorMotivo: String? = null
+    val errorMotivo: String? = null,
+    val errorGeneral: String? = null
 )
 
 data class FormularioMovimientoEstado(

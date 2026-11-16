@@ -38,24 +38,41 @@ class InventarioRepository(
     }
 
     suspend fun registrarMovimiento(movimiento: Movimiento): Result<Unit> {
-        val producto = productoDao.obtenerPorCodigo(movimiento.codigoProducto)
-            ?: return Result.failure(Exception("Producto no encontrado"))
+        return try {
+            val producto = productoDao.obtenerPorCodigo(movimiento.codigoProducto)
+                ?: return Result.failure(Exception("Producto no encontrado"))
 
-        val nuevoStock = when (movimiento.tipo) {
-            TipoMovimiento.ENTRADA -> producto.stockActual + movimiento.cantidad
-            TipoMovimiento.SALIDA_VENTA, TipoMovimiento.SALIDA_CONSUMO -> {
-                val remanente = producto.stockActual - movimiento.cantidad
-                if (remanente < 0) {
-                    return Result.failure(Exception("RN-01: Una salida no puede dejar el stock bajo cero."))
+            val nuevoStock = when (movimiento.tipo) {
+                TipoMovimiento.ENTRADA -> producto.stockActual + movimiento.cantidad
+                TipoMovimiento.SALIDA_VENTA, TipoMovimiento.SALIDA_CONSUMO -> {
+                    val remanente = producto.stockActual - movimiento.cantidad
+                    if (remanente < 0) {
+                        return Result.failure(
+                            Exception("Una salida no puede dejar el stock bajo cero (Disponible: ${producto.stockActual}).")
+                        )
+                    }
+                    remanente
                 }
-                remanente
+                TipoMovimiento.AJUSTE -> {
+                    if (movimiento.cantidad < 0) {
+                        return Result.failure(
+                            Exception("El ajuste no puede dejar el stock bajo cero.")
+                        )
+                    }
+                    movimiento.cantidad
+                }
             }
-            TipoMovimiento.AJUSTE -> movimiento.cantidad
-        }
 
-        val productoActualizado = producto.copy(stockActual = nuevoStock)
-        productoDao.actualizar(productoActualizado)
-        movimientoDao.insertar(movimiento)
-        return Result.success(Unit)
+            val productoActualizado = producto.copy(stockActual = nuevoStock)
+
+            // guarda el nuevo stock y el movimiento en una sola transacción de Room
+            movimientoDao.registrarMovimientoConStock(
+                productoActualizado = productoActualizado,
+                movimiento = movimiento
+            )
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(Exception("Error al procesar la transacción: ${e.message}"))
+        }
     }
 }
