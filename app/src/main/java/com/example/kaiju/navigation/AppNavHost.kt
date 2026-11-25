@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.Warning
@@ -36,8 +37,10 @@ import com.example.kaiju.viewmodel.InventarioViewModel
 import com.example.kaiju.viewmodel.InventarioViewModelFactory
 import com.example.kaiju.viewmodel.SesionViewModel
 import com.example.kaiju.ui.screen.PantallaPokedex
+import com.example.kaiju.ui.screen.PantallaUsuarios
 import com.example.kaiju.viewmodel.PokedexViewModel
 import com.example.kaiju.viewmodel.PokedexViewModelFactory
+import com.example.kaiju.viewmodel.UsuariosViewModel
 
 @Composable
 fun AppNavHost(
@@ -53,6 +56,7 @@ fun AppNavHost(
     val pokedexViewModel: PokedexViewModel = viewModel(
         factory = PokedexViewModelFactory()
     )
+    val usuariosViewModel: UsuariosViewModel = viewModel()
 
     val backStackEntry by navController.currentBackStackEntryAsState()
     val rutaActual = backStackEntry?.destination?.route
@@ -122,6 +126,14 @@ fun AppNavHost(
                             },
                             icon = { Icon(Icons.Filled.Add, contentDescription = null) },
                             label = { Text("Agregar") }
+                        )
+                    }
+                    if (sesionViewModel.puedeGestionarUsuarios()) {
+                        NavigationBarItem(
+                            selected = rutaActual == Rutas.Usuarios.ruta,
+                            onClick = { navController.navigate(Rutas.Usuarios.ruta) { launchSingleTop = true } },
+                            icon = { Icon(Icons.Filled.Person, contentDescription = null) },
+                            label = { Text("Usuarios") }
                         )
                     }
                 }
@@ -254,6 +266,13 @@ fun AppNavHost(
                 PantallaPokedex(
                     viewModel = pokedexViewModel,
                     onVolver = { navController.popBackStack() }
+                )
+            }
+            composable(Rutas.Usuarios.ruta) {
+                PantallaUsuarios(
+                    viewModel = usuariosViewModel,
+                    onVolver = { navController.popBackStack() },
+                    onCerrarSesion = onCerrarSesion
                 )
             }
         }
