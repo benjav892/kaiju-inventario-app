@@ -1,6 +1,8 @@
 package com.example.kaiju.model
 
 data class FormularioLoginEstado(
-    val usuarioSeleccionado: Usuario? = null,
+    val email: String = "",
+    val password: String = "",
+    val cargando: Boolean = false,
     val errores: ErroresLogin = ErroresLogin()
 )

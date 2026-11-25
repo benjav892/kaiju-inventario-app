@@ -1,97 +1,129 @@
 package com.example.kaiju.viewmodel
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.example.kaiju.model.ErroresLogin
 import com.example.kaiju.model.FormularioLoginEstado
+import com.example.kaiju.model.LoginRequest
 import com.example.kaiju.model.Rol
 import com.example.kaiju.model.TipoMovimiento
 import com.example.kaiju.model.Usuario
-import com.example.kaiju.repository.DatosDePrueba
+import com.example.kaiju.remote.KaijuApiClient
+import com.example.kaiju.remote.KaijuApiService
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
+import retrofit2.HttpException
+import java.io.IOException
 
-class SesionViewModel : ViewModel() {
-
-    val usuariosDisponibles: List<Usuario> = DatosDePrueba.usuariosIniciales
-    private val _estadoFormulario = MutableStateFlow(FormularioLoginEstado())
-    val estadoFormulario: StateFlow<FormularioLoginEstado> = _estadoFormulario.asStateFlow()
+class SesionViewModel(
+    private val api: KaijuApiService = KaijuApiClient.api
+) : ViewModel() {
 
     private val _usuarioActivo = MutableStateFlow<Usuario?>(null)
     val usuarioActivo: StateFlow<Usuario?> = _usuarioActivo.asStateFlow()
 
-    fun seleccionarUsuario(usuario: Usuario) {
-        _estadoFormulario.update { estadoActual ->
-            estadoActual.copy(
-                usuarioSeleccionado = usuario,
-                errores = ErroresLogin(errorUsuario = null)
+    private val _estadoFormulario = MutableStateFlow(FormularioLoginEstado())
+    val estadoFormulario: StateFlow<FormularioLoginEstado> = _estadoFormulario.asStateFlow()
+
+    fun actualizarEmail(valor: String) {
+        _estadoFormulario.update {
+            it.copy(
+                email = valor,
+                errores = it.errores.copy(errorEmail = null, errorGeneral = null)
             )
         }
     }
 
-    fun validarLogin(): Boolean {
-        val estado = _estadoFormulario.value
-        val errorUsuario = if (estado.usuarioSeleccionado == null) {
-            "Debe seleccionar un usuario de prueba para ingresar"
-        } else {
-            null
-        }
-
+    fun actualizarPassword(valor: String) {
         _estadoFormulario.update {
-            it.copy(errores = ErroresLogin(errorUsuario = errorUsuario))
+            it.copy(
+                password = valor,
+                errores = it.errores.copy(errorPassword = null, errorGeneral = null)
+            )
         }
-
-        return errorUsuario == null
     }
 
-    fun iniciarSesion(): Boolean {
-        if (!validarLogin()) return false
+    fun iniciarSesion(onExito: () -> Unit) {
+        val estadoActual = _estadoFormulario.value
+        val emailLimpio = estadoActual.email.trim()
+        val passwordActual = estadoActual.password
 
-        _usuarioActivo.value = _estadoFormulario.value.usuarioSeleccionado
-        return true
+        val errorEmail = when {
+            emailLimpio.isBlank() -> "Ingresa tu correo"
+            !emailLimpio.contains("@") -> "Formato de correo inválido"
+            else -> null
+        }
+        val errorPassword = if (passwordActual.isBlank()) "Ingresa tu contraseña" else null
+
+        if (errorEmail != null || errorPassword != null) {
+            _estadoFormulario.update {
+                it.copy(errores = ErroresLogin(errorEmail = errorEmail, errorPassword = errorPassword))
+            }
+            return
+        }
+
+        _estadoFormulario.update { it.copy(cargando = true, errores = ErroresLogin()) }
+
+        viewModelScope.launch {
+            try {
+                val respuesta = api.login(LoginRequest(email = emailLimpio, password = passwordActual))
+                KaijuApiClient.tokenJwt = respuesta.accessToken
+
+                val u = respuesta.usuario
+                _usuarioActivo.value = Usuario(
+                    id = u.id.toString(),
+                    nombre = "${u.nombre} ${u.apellido}".trim(),
+                    rol = Rol.desdeBackend(u.rol)
+                )
+                _estadoFormulario.value = FormularioLoginEstado()
+                onExito()
+            } catch (e: HttpException) {
+                val mensaje = if (e.code() == 401 || e.code() == 400) {
+                    "Correo o contraseña incorrectos"
+                } else {
+                    "Error del servidor (${e.code()})"
+                }
+                _estadoFormulario.update {
+                    it.copy(cargando = false, errores = ErroresLogin(errorGeneral = mensaje))
+                }
+            } catch (e: IOException) {
+                _estadoFormulario.update {
+                    it.copy(
+                        cargando = false,
+                        errores = ErroresLogin(errorGeneral = "No se pudo conectar con el servidor")
+                    )
+                }
+            }
+        }
     }
 
     fun cerrarSesion() {
+        KaijuApiClient.tokenJwt = null
         _usuarioActivo.value = null
         _estadoFormulario.value = FormularioLoginEstado()
     }
 
-    // ---- Reglas de permisos por perfil/rol -----
+    fun puedeGestionarUsuarios(): Boolean =
+        _usuarioActivo.value?.rol == Rol.ADMINISTRADOR
 
-    // crear y editar productos solo está permitido para el ADMINISTRADOR
-    fun puedeCrearEditarProductos(): Boolean {
-        return _usuarioActivo.value?.rol == Rol.ADMINISTRADOR
-    }
+    fun puedeCrearEditarProductos(): Boolean =
+        _usuarioActivo.value?.rol == Rol.ADMINISTRADOR
 
-    // ver pantalla de alertas corresponde a ENCARGADO_INVENTARIO y ADMINISTRADOR
-    fun puedeVerAlertas(): Boolean {
-        val rol = _usuarioActivo.value?.rol
-        return rol == Rol.ADMINISTRADOR || rol == Rol.ENCARGADO_INVENTARIO
-    }
+    fun puedeVerAlertas(): Boolean =
+        _usuarioActivo.value?.rol == Rol.ADMINISTRADOR ||
+                _usuarioActivo.value?.rol == Rol.ENCARGADO_INVENTARIO
 
-    // El historial de movimientos solo está permitido para el ADMINISTRADOR
-    fun puedeVerHistorialMovimientos(): Boolean {
-        return _usuarioActivo.value?.rol == Rol.ADMINISTRADOR
-    }
+    fun puedeVerHistorialMovimientos(): Boolean =
+        _usuarioActivo.value?.rol == Rol.ADMINISTRADOR
 
-    // devuelve que tipos de movimientos puede registrar el usuario activo
-    fun obtenerTiposMovimientoPermitidos(): List<TipoMovimiento> {
-        return when (_usuarioActivo.value?.rol) {
-            Rol.ADMINISTRADOR -> listOf(
-                TipoMovimiento.ENTRADA,
-                TipoMovimiento.AJUSTE
-            )
-            Rol.ENCARGADO_INVENTARIO -> listOf(
-                TipoMovimiento.ENTRADA,
-                TipoMovimiento.SALIDA_VENTA,
-                TipoMovimiento.SALIDA_CONSUMO,
-                TipoMovimiento.AJUSTE
-            )
-            Rol.VENDEDOR -> listOf(
-                TipoMovimiento.SALIDA_VENTA
-            )
+    fun obtenerTiposMovimientoPermitidos(): List<TipoMovimiento> =
+        when (_usuarioActivo.value?.rol) {
+            Rol.VENDEDOR -> listOf(TipoMovimiento.SALIDA_VENTA)
+            Rol.ENCARGADO_INVENTARIO -> TipoMovimiento.entries
+            Rol.ADMINISTRADOR -> listOf(TipoMovimiento.ENTRADA, TipoMovimiento.AJUSTE)
             null -> emptyList()
         }
-    }
 }
