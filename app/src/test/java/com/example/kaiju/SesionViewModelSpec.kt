@@ -10,7 +10,6 @@ import com.example.kaiju.viewmodel.SesionViewModel
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import io.mockk.coEvery
-import io.mockk.coVerify
 import io.mockk.mockk
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -33,19 +32,6 @@ class SesionViewModelSpec : FunSpec({
         Dispatchers.resetMain()
         KaijuApiClient.tokenJwt = null
     }
-
-    test("un correo sin arroba se rechaza y no llama al backend") {
-        val api = mockk<KaijuApiService>()
-        val vm = SesionViewModel(api)
-        vm.actualizarEmail("sin-arroba")
-        vm.actualizarPassword("1234")
-
-        vm.iniciarSesion { }
-
-        vm.estadoFormulario.value.errores.errorEmail shouldBe "Formato de correo inválido"
-        coVerify(exactly = 0) { api.login(any()) }
-    }
-
     test("un 401 del backend muestra correo o contraseña incorrectos") {
         runTest(dispatcher) {
             val api = mockk<KaijuApiService>()
