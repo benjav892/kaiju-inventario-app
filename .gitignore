@@ -15,3 +15,10 @@
 .cxx
 local.properties
 /.idea/deploymentTargetSelector.xml
+# Llaves y credenciales de firma
+*.jks
+*.keystore
+keystore.properties
+
+# Excepción: la llave de práctica del curso sí va al repositorio
+!llaves/practica-curso.jks
